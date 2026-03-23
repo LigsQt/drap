@@ -30,6 +30,18 @@ const RankingsFormData = v.object({
   students: v.array(v.pipe(v.string(), v.minLength(1))),
 });
 
+interface TransactionSuccess {
+  success: true;
+  submittedRound: number;
+  roundsToNotify: (number | null)[];
+}
+
+interface TransactionFailure {
+  success: false;
+  status: number;
+  data: { reason: string };
+}
+
 const SERVICE_NAME = 'routes.dashboard.draft.students';
 const logger = Logger.byName(SERVICE_NAME);
 const tracer = Tracer.byName(SERVICE_NAME);
@@ -147,7 +159,7 @@ export const actions = {
       });
 
       const draftId = BigInt(draft);
-      const transactionResult = await db.transaction(
+      const transactionResult: TransactionSuccess | TransactionFailure = await db.transaction(
         async db => {
           const activeDraft = await getActiveDraftForUpdate(db);
           if (typeof activeDraft === 'undefined' || activeDraft.id !== draftId) {
@@ -176,7 +188,7 @@ export const actions = {
               'draft.round.current': activeDraft.currRound,
               'draft.round.expected': expectedRound,
             });
-            return fail(409, { reason: 'round-mismatch' });
+            return { success: false, status: 409, data: { reason: 'round_mismatch' } };
           }
 
           const existingChoice = await getFacultyChoiceForLabInDraftRound(
@@ -208,7 +220,7 @@ export const actions = {
                 'draft.round.current': activeDraft.currRound,
                 'choice.round': existingChoice.round,
               });
-              return fail(409, { reason: 'round-advanced' });
+              return { success: false, status: 409, data: { reason: 'round_advanced' } };
             }
 
             const selectedInCurrentRound = await getLabSelectedStudentCountInDraftRound(
@@ -277,13 +289,12 @@ export const actions = {
             }
           }
 
-          return { submittedRound, roundsToNotify };
+          return { success: true, submittedRound, roundsToNotify };
         },
         { isolationLevel: 'read committed' },
       );
 
-      // Early return if transaction returned a failure
-      if ('status' in transactionResult) return transactionResult;
+      if (!transactionResult.success) return fail(transactionResult.status, transactionResult.data);
 
       const { submittedRound, roundsToNotify } = transactionResult;
 
