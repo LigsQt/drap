@@ -334,16 +334,16 @@ export const actions = {
 
         await inngest.send([...roundSubmittedEvents, ...roundStartedEvents]);
         logger.info('student rankings submitted');
-      } catch (error) {
-        if (error instanceof RoundMismatchError) {
-          logger.fatal('round mismatch - round may have advanced since page load', error, {
+      } catch (err) {
+        if (err instanceof RoundMismatchError) {
+          logger.fatal('round mismatch - round may have advanced since page load', err, {
             'draft.id': draftId.toString(),
-            'draft.round.current': error.currentRound,
-            'draft.round.expected': error.expectedRound,
+            'draft.round.current': err.currentRound,
+            'draft.round.expected': err.expectedRound,
           });
           return fail(409);
         }
-        throw error;
+        throw err;
       }
     });
   },
