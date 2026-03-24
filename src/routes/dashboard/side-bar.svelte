@@ -85,7 +85,10 @@
             </Sidebar.MenuButton>
           </Sidebar.MenuItem>
           <Sidebar.MenuItem>
-            <Sidebar.MenuButton isActive={pathname.startsWith('/privacy/')} tooltipContent="Privacy">
+            <Sidebar.MenuButton
+              isActive={pathname.startsWith('/privacy/')}
+              tooltipContent="Privacy"
+            >
               {#snippet child({ props })}
                 <a href={resolve('/privacy/')} onclick={closeMobileSidebar} {...props}>
                   <LockKeyholeIcon class="size-5" />
