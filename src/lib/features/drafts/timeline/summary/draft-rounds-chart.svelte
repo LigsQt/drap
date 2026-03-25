@@ -168,7 +168,7 @@
   });
 </script>
 
-<Card.Root class="bg-gradient-to-br from-muted/30 to-muted/10">
+<Card.Root class="bg-linear-to-br from-muted/30 to-muted/10">
   <Card.Header>
     <div class="flex flex-row items-center justify-between gap-4">
       <div>
@@ -180,7 +180,9 @@
             &mdash; <Badge variant="default">All labs</Badge>
           {/if}
         </Card.Title>
-        <Card.Description>A long description.</Card.Description>
+        <Card.Description
+          >Visualizes student assignments or remaining lab quota across draft phases.</Card.Description
+        >
       </div>
       <div class="flex items-center gap-2">
         <select
