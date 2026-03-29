@@ -1761,16 +1761,6 @@ export async function getFacultyChoiceRecords(db: DbConnection, draftId: bigint)
   });
 }
 
-export interface SystemLogsExportRecord {
-  draftId: bigint;
-  round: number | null;
-  labId: string;
-  createdAt: Date;
-  userId: string | null;
-  userEmail: string | null;
-  studentEmails: string[];
-}
-
 export async function getSystemLogsExport(db: DbConnection, draftId: bigint) {
   return await tracer.asyncSpan('get-system-logs-export', async span => {
     span.setAttribute('database.draft.id', draftId.toString());

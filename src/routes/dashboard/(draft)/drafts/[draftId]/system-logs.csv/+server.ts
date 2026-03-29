@@ -4,11 +4,7 @@ import { lightFormat } from 'date-fns';
 import { TZDate } from '@date-fns/tz';
 
 import { db } from '$lib/server/database';
-import {
-  getDraftById,
-  getSystemLogsExport,
-  type SystemLogsExportRecord,
-} from '$lib/server/database/drizzle';
+import { getDraftById, getSystemLogsExport } from '$lib/server/database/drizzle';
 import { Logger } from '$lib/server/telemetry/logger';
 import { validateBigInt } from '$lib/validators';
 
@@ -16,22 +12,30 @@ const SERVICE_NAME = 'routes.dashboard.admin.drafts.system-logs-csv';
 const logger = Logger.byName(SERVICE_NAME);
 
 function determineAction(userEmail: string | null, studentEmails: string[]): string {
-  if (userEmail === null) return 'System automation';
-  if (studentEmails.length === 0) return 'No students selected';
-  return 'Selected students';
+  if (userEmail === null) return 'System automation triggered.';
+  if (studentEmails.length === 0) return 'No students selected.';
+  return 'Students selected.';
 }
 
-function formatSystemLogForCsv(record: SystemLogsExportRecord) {
-  const roundDisplay = record.round === null ? 'Lottery' : record.round;
-  const action = determineAction(record.userEmail, record.studentEmails);
-
+type SystemLogsExport = Awaited<ReturnType<typeof getSystemLogsExport>>;
+function formatSystemLogForCsv({
+  createdAt,
+  draftId,
+  round,
+  userId,
+  labId,
+  userEmail,
+  studentEmails,
+}: SystemLogsExport[number]) {
   return {
-    Timestamp: record.createdAt.toISOString(),
-    Round: roundDisplay,
-    'Lab ID': record.labId,
-    Action: action,
-    Actor: record.userEmail ?? 'System',
-    Students: record.studentEmails.join('; '),
+    createdAt,
+    draftId: Number(draftId),
+    round: round === null ? 'Lottery' : round,
+    labId,
+    userId,
+    userEmail,
+    studentEmails: studentEmails.join(','),
+    action: determineAction(userEmail, studentEmails),
   };
 }
 
@@ -66,6 +70,7 @@ export async function GET({ params: { draftId: draftIdParam }, locals: { session
   logger.info('exporting system logs');
   const records = await getSystemLogsExport(db, draftId);
   const csvData = records.map(formatSystemLogForCsv);
+
   const philippineTime = new TZDate(new Date(), 'Asia/Manila');
   const now = lightFormat(philippineTime, 'yyyy-MM-dd');
   return new Response(Papa.unparse(csvData), {
