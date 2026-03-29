@@ -18,7 +18,6 @@ import {
   getDraftLabQuotaLabIds,
   getDraftLabQuotaSnapshots,
   getFacultyAndStaff,
-  getFacultyChoiceRecords,
   getLabById,
   getPendingLabCountInDraft,
   getStudentCountInDraft,

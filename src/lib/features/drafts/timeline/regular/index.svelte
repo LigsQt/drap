@@ -6,10 +6,10 @@
   import * as Tabs from '$lib/components/ui/tabs';
   import AvailableDraftees from '$lib/features/drafts/draftees/available/index.svelte';
   import DraftedDraftees from '$lib/features/drafts/draftees/drafted/index.svelte';
+  import SystemLogsLoader from '$lib/features/drafts/system-logs/loader.svelte';
   import type { Lab } from '$lib/features/drafts/types';
 
   import LabRoundSummary from './lab-round-summary.svelte';
-  import SystemLogsLoader from '$lib/features/drafts/system-logs/loader.svelte';
 
   type TabType = 'students' | 'labs' | 'logs';
 

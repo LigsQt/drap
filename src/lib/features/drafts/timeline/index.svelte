@@ -3,12 +3,7 @@
   import { format } from 'date-fns';
 
   import { Button } from '$lib/components/ui/button';
-  import type {
-    Draft,
-    DraftFinalizedBreakdown,
-    FacultyChoiceRecord,
-    Lab,
-  } from '$lib/features/drafts/types';
+  import type { Draft, DraftFinalizedBreakdown, Lab } from '$lib/features/drafts/types';
   import { resolve } from '$app/paths';
 
   import Step, { type Status } from './step.svelte';

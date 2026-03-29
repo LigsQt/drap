@@ -1,9 +1,10 @@
 <script lang="ts">
   import Loader2Icon from '@lucide/svelte/icons/loader-2';
 
-  import DataDisplay from './data-display.svelte';
   import Empty from '$lib/components/ui/empty/empty.svelte';
   import { createFetchDraftFacultyChoicesQuery } from '$lib/queries/fetch-draft-faculty-choices';
+
+  import DataDisplay from './data-display.svelte';
 
   export interface Props {
     draftId: string;
