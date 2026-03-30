@@ -31,7 +31,7 @@
     if (value === 'students' || value === 'labs' || value === 'logs') group = value;
   }}
 >
-  <div class="flex justify-around items-left sm:justify-normal">
+  <div class="items-left flex justify-around sm:justify-normal">
     <Tabs.List class="w-full">
       <Tabs.Trigger value="students">
         <GraduationCapIcon class="size-5" />
@@ -48,7 +48,7 @@
     </Tabs.List>
   </div>
   <Tabs.Content value="students">
-    <div class="flex flex-col sm:flex-row gap-2 items-center justify-around">
+    <div class="flex flex-col items-center justify-around gap-2 sm:flex-row">
       <AvailableDraftees {draftId} variant="pending-selection"
         >No available draftees.</AvailableDraftees
       >

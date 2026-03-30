@@ -14,7 +14,9 @@
   const { draftId, round, lab }: Props = $props();
 </script>
 
-<div class="flex flex-col text-left items-left w-full lg:flex-row lg:justify-between border-b px-1 py-2 last:border-0">
+<div
+  class="items-left flex w-full flex-col border-b px-1 py-2 text-left last:border-0 lg:flex-row lg:justify-between"
+>
   <div class="flex flex-col gap-2 overflow-auto lg:flex-row">
     {#if lab.quota !== 0}
       <Badge
@@ -24,7 +26,7 @@
         {lab.quota} maximum
       </Badge>
     {/if}
-    <div class="whitespace-nowrap h-8 flex items-left gap-1 overflow-auto">
+    <div class="items-left flex h-8 gap-1 overflow-auto whitespace-nowrap">
       {#if lab.quota === 0}
         <h5 class="text-lg font-medium text-muted-foreground">{lab.name}</h5>
       {:else}
@@ -32,7 +34,7 @@
       {/if}
     </div>
   </div>
-  <div class="flex items-left sm:items-end gap-1">
+  <div class="items-left flex gap-1 sm:items-end">
     <!-- Members -->
     <DraftedDraftees {draftId} {lab} />
     <!-- Preferred -->
