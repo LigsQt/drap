@@ -42,7 +42,7 @@ jobs:
         with:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
-          node-version: 24.13.0
+          node-version: 24.14.1
 
       - name: Install Dependencies
         run: pnpm install
