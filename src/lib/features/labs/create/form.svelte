@@ -43,7 +43,9 @@
     };
   }}
 >
-  <input type="hidden" name="draftIdRaw" value={draftId ?? ''} />
+  {#if typeof draftId !== 'undefined'}
+    <input type="hidden" name="draftId" value={draftId} />
+  {/if}
   <div class="space-y-2">
     <Label for="lab-id">Lab ID</Label>
     <Input type="text" required name="labId" id="lab-id" placeholder="dcs" pattern="[a-z0-9]+" />

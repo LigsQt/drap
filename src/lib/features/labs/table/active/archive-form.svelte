@@ -41,7 +41,9 @@
     };
   }}
 >
-  <input type="hidden" name="draftIdRaw" value={draftId ?? ''} />
+  {#if typeof draftId !== 'undefined'}
+    <input type="hidden" name="draftId" value={draftId} />
+  {/if}
   <input type="hidden" name="archive" value={labId} />
   <Tooltip>
     <TooltipTrigger>
