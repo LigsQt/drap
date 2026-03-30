@@ -7,7 +7,7 @@
   import type { FacultyChoiceRecord } from '$lib/features/drafts/types';
   import { resolve } from '$app/paths';
 
-  interface Props {
+  export interface Props {
     draftId: string;
     data: FacultyChoiceRecord[];
   }

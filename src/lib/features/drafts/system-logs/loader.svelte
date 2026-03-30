@@ -4,14 +4,9 @@
   import Empty from '$lib/components/ui/empty/empty.svelte';
   import { createFetchDraftFacultyChoicesQuery } from '$lib/queries/fetch-draft-faculty-choices';
 
-  import DataDisplay from './data-display.svelte';
+  import Display, { type Props as DisplayProps } from './display.svelte';
 
-  export interface Props {
-    draftId: string;
-  }
-
-  const { draftId }: Props = $props();
-
+  const { draftId }: Pick<DisplayProps, 'draftId'> = $props();
   const query = $derived(createFetchDraftFacultyChoicesQuery(draftId));
 </script>
 
@@ -22,5 +17,5 @@
 {:else if query.isError}
   <Empty>Uh oh! An error has occurred.</Empty>
 {:else}
-  <DataDisplay {draftId} data={query.data} />
+  <Display {draftId} data={query.data} />
 {/if}
