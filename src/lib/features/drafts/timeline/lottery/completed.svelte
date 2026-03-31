@@ -14,9 +14,7 @@
   const { draftId, lotteryDrafted, isReview }: Props = $props();
 </script>
 
-<div
-  class="@container grid grid-cols-1 gap-4 @[52rem]:grid-cols-[minmax(16rem,22rem)_minmax(0,1fr)] @[52rem]:items-start"
->
+<div class="grid grid-cols-1 items-start gap-4 md:grid-cols-2">
   <div class="prose max-w-none dark:prose-invert">
     <h3>{isReview ? 'Review Phase' : 'Lottery Phase'}</h3>
     {#if isReview}
