@@ -39,7 +39,7 @@ export async function GET({ params, locals: { session } }) {
       'session.id': sessionId,
       'session.user.id': userId,
     });
- 
+
     const assignments = await getDraftAssignmentRecords(db, draftId);
 
     logger.debug('draft assignments fetched', {

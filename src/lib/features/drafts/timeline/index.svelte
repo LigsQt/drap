@@ -205,10 +205,7 @@
         {#if currentPhase === 'intervention'}
           <LotteryActive {draftId} {labs} snapshots={finalized.snapshots} />
         {:else}
-          <LotteryCompleted
-            {draftId}
-            isReview={currentPhase === 'review'}
-          />
+          <LotteryCompleted {draftId} isReview={currentPhase === 'review'} />
         {/if}
       </Step>
     {/if}

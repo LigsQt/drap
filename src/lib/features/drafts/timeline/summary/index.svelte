@@ -10,8 +10,8 @@
   import * as Card from '$lib/components/ui/card';
   import StudentCard from '$lib/users/student.svelte';
   import { Button } from '$lib/components/ui/button';
-  import { createFetchDrafteesQuery } from '$lib/queries/fetch-draftees';
   import { createFetchDraftAssignmentsQuery } from '$lib/queries/fetch-draft-assignments';
+  import { createFetchDrafteesQuery } from '$lib/queries/fetch-draftees';
   import type { Draft, DraftFinalizedBreakdown, Lab } from '$lib/features/drafts/types';
   import { Empty } from '$lib/components/ui/empty';
   import { resolve } from '$app/paths';
@@ -33,9 +33,21 @@
     finalized.snapshots.length > 0 ? finalized.snapshots.length : labs.length,
   );
 
-  const regularDraftedQuery = $derived(createFetchDraftAssignmentsQuery(draftId, assignments => (assignments.filter(({ round }) => (round !== null && 0 < round && round <= draft.maxRounds)))));
-  const interventionDraftedQuery = $derived(createFetchDraftAssignmentsQuery(draftId, assignments => (assignments.filter(({ round }) => (round !== null && round === draft.maxRounds + 1)))));
-  const lotteryDraftedQuery = $derived(createFetchDraftAssignmentsQuery(draftId, assignments => (assignments.filter(({ round }) => (round === null)))));
+  const regularDraftedQuery = $derived(
+    createFetchDraftAssignmentsQuery(draftId, assignments =>
+      assignments.filter(({ round }) => round !== null && round > 0 && round <= draft.maxRounds),
+    ),
+  );
+  const interventionDraftedQuery = $derived(
+    createFetchDraftAssignmentsQuery(draftId, assignments =>
+      assignments.filter(({ round }) => round !== null && round === draft.maxRounds + 1),
+    ),
+  );
+  const lotteryDraftedQuery = $derived(
+    createFetchDraftAssignmentsQuery(draftId, assignments =>
+      assignments.filter(({ round }) => round === null),
+    ),
+  );
 
   const drafteesQuery = $derived(createFetchDrafteesQuery(draftId));
 </script>
@@ -209,9 +221,7 @@
         class="bg-linear-to-br from-muted/30 to-muted/10"
       >
         <Card.Header>
-          <Card.Title
-            >Intervention Drafted ({interventionDraftedQuery.data.length})</Card.Title
-          >
+          <Card.Title>Intervention Drafted ({interventionDraftedQuery.data.length})</Card.Title>
         </Card.Header>
         <Card.Content class="space-y-2">
           <div class="grid grid-cols-1 gap-2 lg:grid-cols-2">

@@ -1,5 +1,6 @@
 <script lang="ts">
   import Loader2Icon from '@lucide/svelte/icons/loader-2';
+
   import * as Card from '$lib/components/ui/card';
   import DraftedDraftees from '$lib/features/drafts/draftees/drafted/index.svelte';
   import { createFetchDraftAssignmentsQuery } from '$lib/queries/fetch-draft-assignments';
@@ -14,7 +15,11 @@
 
   const { draftId, isReview }: Props = $props();
 
-  const query = $derived(createFetchDraftAssignmentsQuery(draftId, assignments => (assignments.filter(({ round }) => (round === null)))));
+  const query = $derived(
+    createFetchDraftAssignmentsQuery(draftId, assignments =>
+      assignments.filter(({ round }) => round === null),
+    ),
+  );
 </script>
 
 {#if query.isPending}
