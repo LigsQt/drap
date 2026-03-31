@@ -465,7 +465,7 @@ export async function getFacultyAndStaff(db: DbConnection) {
       })
       .from(schema.user)
       .leftJoin(schema.lab, eq(schema.user.labId, schema.lab.id))
-      .where(and(eq(schema.user.isAdmin, true), isNotNull(schema.user.googleUserId)));
+      .where(eq(schema.user.isAdmin, true));
   });
 }
 
