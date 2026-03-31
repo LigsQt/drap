@@ -27,7 +27,7 @@
         {lab.quota} maximum
       </Badge>
     {/if}
-    <h5 class={cn('text-lg leading-5 font-medium', lab.quota === 0 && 'text-muted-foreground')}>
+    <h5 class={cn('text-lg leading-5 font-medium', { 'text-muted-foreground': lab.quota === 0 })}>
       {lab.name}
     </h5>
   </div>
