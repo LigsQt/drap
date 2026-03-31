@@ -21,16 +21,29 @@
 
   import SortByHeader from './sort-by-header.svelte';
 
+  interface ExtendedStudent extends Student {
+    isLate: boolean;
+  }
+
   interface Props {
-    data: Student[];
+    data: ExtendedStudent[];
     children?: Snippet;
   }
 
   const { data, children }: Props = $props();
 
   // Shape the table columns
-  const columnHelper = createColumnHelper<Student>();
+  const columnHelper = createColumnHelper<ExtendedStudent>();
   const columns = [
+    columnHelper.accessor('id', {
+      id: 'isLate',
+      header: '',
+      cell: ({ row }) => {
+        const isLate = row.original.isLate;
+        return isLate ? renderComponent(TriangleAlertIcon, { class: 'size-4 text-amber-500 ml-2' }) : null;
+      },
+    }),
+
     columnHelper.accessor(({ studentNumber }) => studentNumber, {
       id: 'studentNumber',
       header: header =>
@@ -39,15 +52,6 @@
           onclick: header.column.getToggleSortingHandler(),
         }),
       cell: info => info.getValue(),
-    }),
-
-    columnHelper.accessor('id', {
-      id: 'isLate',
-      header: '',
-      cell: ({ row }) => {
-        const isLate = (row.original as Student & { isLate?: boolean }).isLate;
-        return isLate ? renderComponent(TriangleAlertIcon, { class: 'size-4 text-amber-500 ml-2' }) : null;
-      },
     }),
 
     columnHelper.accessor(

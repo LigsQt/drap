@@ -33,6 +33,8 @@
     finalized: DraftFinalizedBreakdown;
     allowlistCount: number;
     lateRegistrantsCount: number;
+    timelineData: { date: Date; count: number }[];
+    requestedAt: Date;
   }
 
   const {
@@ -44,6 +46,8 @@
     finalized,
     allowlistCount,
     lateRegistrantsCount,
+    timelineData,
+    requestedAt,
   }: Props = $props();
   const draftId = $derived(rawDraftId.toString());
 
@@ -250,7 +254,16 @@
           snapshots={finalized.snapshots}
         />
       {:else}
-        <RegistrationCompleted {draftId} {studentCount} {lateRegistrantsCount} />
+        <RegistrationCompleted 
+          {draftId} 
+          draftCreatedAt={draft.activePeriodStart} 
+          registrationClosedAt={draft.registrationClosedAt} 
+          startedAt={draft.startedAt} 
+          {requestedAt} 
+          {timelineData}
+          {studentCount}
+          {lateRegistrantsCount}
+        />
       {/if}
     </Step>
   </div>

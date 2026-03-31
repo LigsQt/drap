@@ -609,6 +609,7 @@ export async function getDraftById(db: DbConnection, id: bigint) {
         currRound: schema.draft.currRound,
         maxRounds: schema.draft.maxRounds,
         registrationClosedAt: schema.draft.registrationClosedAt,
+        startedAt: schema.draft.startedAt,
         isRegistrationClosed,
         activePeriodStart: sql`lower(${schema.draft.activePeriod})`.mapWith(coerceDate),
         activePeriodEnd: sql`upper(${schema.draft.activePeriod})`.mapWith(coerceNullableDate),
@@ -627,6 +628,7 @@ export async function getDraftByIdForUpdate(db: DrizzleTransaction, id: bigint) 
         currRound: schema.draft.currRound,
         maxRounds: schema.draft.maxRounds,
         registrationClosedAt: schema.draft.registrationClosedAt,
+        startedAt: schema.draft.startedAt,
         isRegistrationClosed,
         activePeriodStart: sql`lower(${schema.draft.activePeriod})`.mapWith(coerceDate),
         activePeriodEnd: sql`upper(${schema.draft.activePeriod})`.mapWith(coerceNullableDate),
@@ -646,6 +648,7 @@ export async function getActiveDraft(db: DbConnection) {
         currRound: schema.draft.currRound,
         maxRounds: schema.draft.maxRounds,
         registrationClosedAt: schema.draft.registrationClosedAt,
+        startedAt: schema.draft.startedAt,
         isRegistrationClosed,
         activePeriodStart: sql`lower(${schema.draft.activePeriod})`.mapWith(coerceDate),
         activePeriodEnd: sql`upper(${schema.draft.activePeriod})`.mapWith(coerceNullableDate),
@@ -2287,5 +2290,37 @@ export async function getLateRegistrantsCountByDraft(db: DbConnection, draftId: 
       .then(assertSingle);
 
     return result;
+  });
+}
+
+export async function fetchDraftRegistrationTimeline(db: DbConnection, draftId: bigint) {
+  return await tracer.asyncSpan('fetch-draft-registration-timeline', async span => {
+    span.setAttribute('database.draft.id', draftId.toString());
+    
+    const result = await db
+      .select({
+        date: sql`date_trunc('day', ${schema.studentRank.createdAt})`.mapWith(coerceDate),
+        count: sql`count(*)::int`,
+      })
+      .from(schema.studentRank)
+      .where(eq(schema.studentRank.draftId, draftId))
+      .groupBy(sql`date_trunc('day', ${schema.studentRank.createdAt})`)
+      .orderBy(sql`date_trunc('day', ${schema.studentRank.createdAt})`);
+
+    return result.map(r => ({
+      date: r.date as Date,
+      count: r.count,
+    }));
+  });
+}
+
+export async function getCurrentDatabaseTime(db: DbConnection): Promise<Date> {
+  return await tracer.asyncSpan('get-current-db-time', async () => {
+    const { now } = await db
+      .select({ now: sql`now()`.mapWith(coerceDate) })
+      .from(schema.draft)
+      .limit(1)
+      .then(assertSingle);
+    return now as Date;
   });
 }

@@ -11,7 +11,9 @@ import {
   autoAcknowledgeLabsWithoutPreferences,
   beginDraftReview,
   concludeDraft,
+  fetchDraftRegistrationTimeline,
   getAllowlistCountByDraft,
+  getCurrentDatabaseTime,
   getDraftAssignmentRecords,
   getDraftById,
   getDraftByIdForUpdate,
@@ -101,13 +103,15 @@ export async function load({ params, locals: { session } }) {
       error(404);
     }
 
-    const [studentCount, assignments, quotaSnapshots, allowlistCount, lateRegistrantsCount] =
+    const [studentCount, assignments, quotaSnapshots, allowlistCount, lateRegistrantsCount, timelineData, requestedAt] =
       await Promise.all([
         getStudentCountInDraft(db, draftId),
         getDraftAssignmentRecords(db, draftId),
         getDraftLabQuotaSnapshots(db, draftId),
         getAllowlistCountByDraft(db, draftId),
         getLateRegistrantsCountByDraft(db, draftId),
+        fetchDraftRegistrationTimeline(db, draftId),
+        getCurrentDatabaseTime(db),
       ]);
     const labs = quotaSnapshots.map(({ labId, labName, initialQuota }) => ({
       id: labId,
@@ -167,6 +171,8 @@ export async function load({ params, locals: { session } }) {
       },
       allowlistCount,
       lateRegistrantsCount,
+      timelineData,
+      requestedAt,
     };
   });
 }

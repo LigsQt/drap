@@ -10,9 +10,10 @@
     requestedAt: Date;
     timelineData: { date: Date; count: number }[];
     studentCount: number;
+    lateRegistrantsCount: number;
   }
 
-  const { draftId, draftCreatedAt, registrationClosedAt, startedAt, requestedAt, timelineData, studentCount }: Props = $props();
+  const { draftId, draftCreatedAt, registrationClosedAt, startedAt, requestedAt, timelineData, studentCount, lateRegistrantsCount }: Props = $props();
 </script>
 
 <div class="space-y-6">
@@ -20,6 +21,11 @@
     <p>
       <strong>{studentCount}</strong> students registered for this draft.
     </p>
+    {#if lateRegistrantsCount > 0}
+      <p>
+        <strong>{lateRegistrantsCount}</strong> students registered after registration closed.
+      </p>
+    {/if}
   </div>
 
   <RegistrantsChart 

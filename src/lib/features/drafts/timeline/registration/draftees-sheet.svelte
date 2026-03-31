@@ -8,6 +8,10 @@
   import DataTable from '$lib/features/drafts/draftees/data-table.svelte';
   import type { Student } from '$lib/features/drafts/types';
 
+  interface ExtendedStudent extends Student {
+    isLate: boolean;
+  }
+
   interface Props {
     draftId: string;
     registrationClosedAt: Date;
@@ -26,7 +30,7 @@
     const map = new Map<string, Student>();
     for (const s of draftees) map.set(s.id, s);
     for (const s of late) if (!map.has(s.id)) map.set(s.id, s);
-    return Array.from(map.values()).map(s => ({ ...s, isLate: lateIds.has(s.id) }));
+    return Array.from(map.values()).map(s => ({ ...s, isLate: lateIds.has(s.id) })) as ExtendedStudent[];
   });
 
   let searchTerm = $state('');

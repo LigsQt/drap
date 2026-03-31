@@ -19,6 +19,7 @@
   const padding = { top: 20, right: 20, bottom: 30, left: 40 };
 
   function getX(date: Date): number {
+    if (!date || !draftCreatedAt || !endBound) return padding.left;
     const start = draftCreatedAt.getTime();
     const end = endBound.getTime();
     const range = end - start;
@@ -31,20 +32,21 @@
     return height - padding.bottom - (count / yMax) * (height - padding.top - padding.bottom);
   }
 
-  const regClosedX = getX(registrationClosedAt);
+  const regClosedX = $derived(getX(registrationClosedAt));
+  $inspect(startedAt)
 </script>
 
 <div class="h-80 w-full p-4 border rounded-lg">
   <div class="text-sm text-muted-foreground mb-4">
-    <span>Created: {draftCreatedAt.toLocaleDateString()}</span>
+    <span>Created: {draftCreatedAt.toLocaleDateString() ?? 'N/A'}</span>
     <span class="mx-2">|</span>
-    <span>Closed: {registrationClosedAt.toLocaleDateString()}</span>
+    <span>Closed: {registrationClosedAt.toLocaleDateString() ?? 'N/A'}</span>
     {#if startedAt}
       <span class="mx-2">|</span>
       <span>Started: {startedAt.toLocaleDateString()}</span>
     {:else}
       <span class="mx-2">|</span>
-      <span>Current: {requestedAt.toLocaleDateString()}</span>
+      <span>Current: {requestedAt?.toLocaleDateString() ?? 'N/A'}</span>
     {/if}
   </div>
 
