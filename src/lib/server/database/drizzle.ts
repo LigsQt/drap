@@ -2263,7 +2263,7 @@ export async function getLateRegistrantsCountByDraft(db: DbConnection, draftId: 
     span.setAttribute('database.draft.id', draftId.toString());
 
     const result = await db
-      .select({ count: sql<number>`count(*)` })
+      .select({ count: count(schema.studentRank.userId) })
       .from(schema.studentRank)
       .innerJoin(schema.draft, eq(schema.studentRank.draftId, schema.draft.id))
       .where(
@@ -2272,7 +2272,7 @@ export async function getLateRegistrantsCountByDraft(db: DbConnection, draftId: 
           sql`${schema.draft.registrationClosesAt} < ${schema.studentRank.createdAt}`,
         ),
       )
-      .then(res => res[0]?.count ?? 0);
+      .then(assertSingle);
 
     return result;
   });
