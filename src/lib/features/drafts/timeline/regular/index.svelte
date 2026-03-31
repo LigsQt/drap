@@ -30,31 +30,31 @@
     if (value === 'students' || value === 'labs' || value === 'logs') group = value;
   }}
 >
-  <div class="min-w-0 overflow-auto">
-    <Tabs.List>
+  <div class="flex justify-around sm:justify-normal">
+    <Tabs.List class="grid h-full w-full grid-cols-3">
       <Tabs.Trigger value="students">
         <GraduationCapIcon class="size-5" />
-        <span>Registered Students</span>
+        <span class="sr-only md:not-sr-only">Registered Students</span>
       </Tabs.Trigger>
       <Tabs.Trigger value="labs">
         <FlaskConicalIcon class="size-5" />
-        <span>Laboratories</span>
+        <span class="sr-only md:not-sr-only">Laboratories</span>
       </Tabs.Trigger>
       <Tabs.Trigger value="logs">
         <PaperclipIcon class="size-5" />
-        <span>System Logs</span>
+        <span class="sr-only md:not-sr-only">System Logs</span>
       </Tabs.Trigger>
     </Tabs.List>
   </div>
   <Tabs.Content value="students">
-    <div class="flex items-center justify-around">
+    <div class="flex flex-col items-center justify-around gap-2 sm:flex-row">
       <AvailableDraftees {draftId} variant="pending-selection"
         >No available draftees.</AvailableDraftees
       >
       <DraftedDraftees {draftId}>No drafted students yet.</DraftedDraftees>
     </div>
   </Tabs.Content>
-  <Tabs.Content value="labs">
+  <Tabs.Content value="labs" class="min-w-0 overflow-auto">
     {#each labs as lab (lab.id)}
       <LabRoundSummary {draftId} {round} {lab} />
     {/each}

@@ -120,7 +120,7 @@
 
 <div class="space-y-6">
   <!-- Header -->
-  <div class="flex items-center justify-between">
+  <div class="flex w-full flex-col justify-between gap-2 lg:flex-row">
     <div>
       <h2 class="text-2xl font-bold">Draft #{draftId.toString()}</h2>
       <p class="text-muted-foreground">
@@ -128,7 +128,7 @@
       </p>
     </div>
     {#if currentPhase !== 'registration' && currentPhase !== 'registration-closed'}
-      <div class="flex gap-2">
+      <div class="flex flex-wrap gap-2 *:w-full min-[24rem]:*:w-min">
         <Button
           href={resolve(`/dashboard/drafts/${draftId}/students.csv`)}
           download

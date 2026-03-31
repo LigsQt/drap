@@ -821,7 +821,7 @@ test.describe('Draft Lifecycle', () => {
       await expectVisibleButtons(adminPage, ['Pending Selection', 'Already Drafted']);
 
       await adminPage.getByRole('tab', { name: 'Laboratories' }).click();
-      await expectVisibleButtons(adminPage, ['See Members', 'See Preferred', 'See Interested']);
+      await expectVisibleButtons(adminPage, ['Members', 'Preferred', 'Interested']);
     });
 
     test('pending selection does not fetch before the drawer opens', async ({ adminPage }) => {
