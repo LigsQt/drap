@@ -7,6 +7,7 @@
 
   import * as Avatar from '$lib/components/ui/avatar';
   import * as Tooltip from '$lib/components/ui/tooltip';
+  import { assert } from '$lib/assert';
   import { Badge } from '$lib/components/ui/badge';
   import { Button } from '$lib/components/ui/button';
   import { enhance } from '$app/forms';
@@ -27,8 +28,6 @@
   const { id, givenName, familyName, email, avatarUrl, labId } = $derived(user);
 
   const queryClient = useQueryClient();
-
-  let isDeleting = $state(false);
 </script>
 
 <div
@@ -56,17 +55,21 @@
     <form
       method="POST"
       action="/dashboard/users/?/deleteInvite"
-      use:enhance={({ cancel }) => {
+      use:enhance={({ submitter, cancel }) => {
         // eslint-disable-next-line no-alert
         if (!confirm('Are you sure you want to delete this invitation?')) {
           cancel();
           return;
         }
 
-        isDeleting = true;
+        assert(submitter !== null);
+        assert(submitter instanceof HTMLButtonElement);
+        submitter.disabled = true;
+
         return async ({ result, update }) => {
+          submitter.disabled = false;
           await update();
-          isDeleting = false;
+
           switch (result.type) {
             case 'success':
               toast.success('Invitation deleted.');
@@ -86,13 +89,7 @@
         <Tooltip.Root>
           <Tooltip.Trigger>
             {#snippet child({ props })}
-              <Button
-                {...props}
-                type="submit"
-                variant="destructive"
-                size="icon-sm"
-                disabled={isDeleting}
-              >
+              <Button {...props} type="submit" variant="destructive" size="icon-sm">
                 <Trash2Icon class="size-4" />
                 <span class="sr-only">Delete Invitation</span>
               </Button>
