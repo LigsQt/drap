@@ -26,7 +26,6 @@
 
   interface Props {
     draftId: bigint;
-    requestedAt: Date;
     draft: Draft;
     labs: Lab[];
     studentCount: number;
@@ -39,7 +38,6 @@
 
   const {
     draftId: rawDraftId,
-    requestedAt,
     draft,
     labs,
     studentCount,

@@ -108,7 +108,6 @@ export async function load({ params, locals: { session } }) {
       allowlistCount,
       lateRegistrantsCount,
       timelineData,
-      requestedAt,
     ] = await Promise.all([
       getStudentCountInDraft(db, draftId),
       getDraftAssignmentRecords(db, draftId),
@@ -116,7 +115,6 @@ export async function load({ params, locals: { session } }) {
       getAllowlistCountByDraft(db, draftId),
       getLateRegistrantsCountByDraft(db, draftId),
       fetchDraftRegistrationTimeline(db, draftId),
-      new Date(),
     ]);
     const labs = quotaSnapshots.map(({ labId, labName, initialQuota }) => ({
       id: labId,
@@ -154,7 +152,6 @@ export async function load({ params, locals: { session } }) {
     return {
       draftId,
       draft: { id: draftId, ...draft },
-      requestedAt: new Date(),
       labs,
       studentCount,
       finalized: {
@@ -176,7 +173,7 @@ export async function load({ params, locals: { session } }) {
       allowlistCount,
       lateRegistrantsCount,
       timelineData,
-      requestedAt,
+      requestedAt: new Date(),
     };
   });
 }
