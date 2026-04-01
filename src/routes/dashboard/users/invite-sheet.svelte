@@ -1,20 +1,28 @@
 <script lang="ts">
+  import Loader2Icon from '@lucide/svelte/icons/loader-2';
   import UsersIcon from '@lucide/svelte/icons/users';
-  import type { Snippet } from 'svelte';
 
+  import * as Empty from '$lib/components/ui/empty';
   import * as Sheet from '$lib/components/ui/sheet';
   import Invited from '$lib/users/invited.svelte';
   import { Button } from '$lib/components/ui/button';
   import { createFetchInvitedUsersQuery } from '$lib/queries/fetch-invited-users';
+  import type { schema } from '$lib/server/database/drizzle';
+
+  import AdminForm from './admin-form.svelte';
+  import FacultyForm from './faculty-form.svelte';
+
+  type Lab = Pick<schema.Lab, 'id' | 'name'>;
 
   interface Props {
-    type: 'admins' | 'heads';
-    children: Snippet;
+    labs?: Lab[];
   }
 
-  const { type, children }: Props = $props();
+  const { labs }: Props = $props();
 
-  const query = $derived(createFetchInvitedUsersQuery(type));
+  const isLabHeadMode = $derived(typeof labs !== 'undefined');
+  const inviteType = $derived(isLabHeadMode ? 'heads' : 'admins');
+  const query = $derived(createFetchInvitedUsersQuery(inviteType));
 </script>
 
 <Sheet.Root>
@@ -29,26 +37,55 @@
   <Sheet.Content class="flex w-full flex-col overflow-hidden sm:max-w-md">
     <Sheet.Header>
       <Sheet.Title>
-        {#if type === 'admins'}
+        {#if typeof labs === 'undefined'}
           Invite Draft Administrators
-        {:else if type === 'heads'}
+        {:else}
           Invite Lab Heads
         {/if}
       </Sheet.Title>
       <Sheet.Description>Invite new users or view pending invitations.</Sheet.Description>
     </Sheet.Header>
-    <div class="flex-1 overflow-y-auto px-4 pb-4">
-      <div class="mb-6">
-        {@render children()}
+    <div class="flex min-h-0 grow flex-col overflow-y-auto px-4 pb-4">
+      <div class="mb-6 shrink-0">
+        {#if typeof labs === 'undefined'}
+          <AdminForm />
+        {:else}
+          <FacultyForm {labs} />
+        {/if}
       </div>
-      <h5 class="mb-4 text-sm font-medium text-muted-foreground">Pending Invitations</h5>
-      <div class="flex flex-col gap-4">
+      <div class="flex min-h-0 grow flex-col gap-4">
         {#if query.isPending}
-          <p class="text-sm text-muted-foreground">Loading pending invitations...</p>
+          <Empty.Root class="min-h-40 grow">
+            <Empty.Media>
+              <Loader2Icon class="size-5 animate-spin text-muted-foreground" />
+            </Empty.Media>
+            <Empty.Header>
+              <Empty.Title>Loading Invitations</Empty.Title>
+              <Empty.Description>Fetching pending invitations.</Empty.Description>
+            </Empty.Header>
+          </Empty.Root>
         {:else if query.isError}
-          <p class="text-sm text-destructive">Failed to load pending invitations.</p>
+          <Empty.Root class="min-h-40 grow">
+            <Empty.Media variant="icon">
+              <UsersIcon class="size-5" />
+            </Empty.Media>
+            <Empty.Header>
+              <Empty.Title class="text-destructive">Failed to Load Invitations</Empty.Title>
+              <Empty.Description>Please try again in a moment.</Empty.Description>
+            </Empty.Header>
+          </Empty.Root>
         {:else if query.data.length === 0}
-          <p class="text-sm text-muted-foreground">No pending invitations.</p>
+          <Empty.Root class="min-h-40 grow">
+            <Empty.Media variant="icon">
+              <UsersIcon class="size-5" />
+            </Empty.Media>
+            <Empty.Header>
+              <Empty.Title>No Pending Invitations</Empty.Title>
+              <Empty.Description
+                >New invitations will appear here after they are sent.</Empty.Description
+              >
+            </Empty.Header>
+          </Empty.Root>
         {:else}
           {#each query.data as user (user.id)}
             <Invited {user} />

@@ -2,8 +2,6 @@
   import * as Card from '$lib/components/ui/card';
   import Faculty from '$lib/users/faculty.svelte';
 
-  import AdminForm from './admin-form.svelte';
-  import FacultyForm from './faculty-form.svelte';
   import InviteSheet from './invite-sheet.svelte';
 
   const { data } = $props();
@@ -20,9 +18,7 @@
 <Card.Root>
   <Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
     <Card.Title class="text-2xl">Lab Heads</Card.Title>
-    <InviteSheet type="heads">
-      <FacultyForm {labs} />
-    </InviteSheet>
+    <InviteSheet {labs} />
   </Card.Header>
   <Card.Content>
     {#if registeredHeads.length === 0}
@@ -39,9 +35,7 @@
 <Card.Root>
   <Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
     <Card.Title class="text-2xl">Draft Administrators</Card.Title>
-    <InviteSheet type="admins">
-      <AdminForm />
-    </InviteSheet>
+    <InviteSheet />
   </Card.Header>
   <Card.Content>
     {#if registeredAdmins.length === 0}
