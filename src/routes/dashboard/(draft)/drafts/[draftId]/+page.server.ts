@@ -12,7 +12,6 @@ import {
   concludeDraft,
   fetchDraftRegistrationTimeline,
   getAllowlistCountByDraft,
-  getCurrentDatabaseTime,
   getDraftAssignmentRecords,
   getDraftById,
   getDraftByIdForUpdate,
@@ -117,7 +116,7 @@ export async function load({ params, locals: { session } }) {
       getAllowlistCountByDraft(db, draftId),
       getLateRegistrantsCountByDraft(db, draftId),
       fetchDraftRegistrationTimeline(db, draftId),
-      getCurrentDatabaseTime(db),
+      new Date()
     ]);
     const labs = quotaSnapshots.map(({ labId, labName, initialQuota }) => ({
       id: labId,

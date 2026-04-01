@@ -2314,14 +2314,3 @@ export async function fetchDraftRegistrationTimeline(db: DbConnection, draftId: 
     }));
   });
 }
-
-export async function getCurrentDatabaseTime(db: DbConnection): Promise<Date> {
-  return await tracer.asyncSpan('get-current-db-time', async () => {
-    const { now } = await db
-      .select({ now: sql`now()`.mapWith(coerceDate) })
-      .from(schema.draft)
-      .limit(1)
-      .then(assertSingle);
-    return now as Date;
-  });
-}
