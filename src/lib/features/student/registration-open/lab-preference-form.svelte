@@ -3,6 +3,7 @@
 </script>
 
 <script lang="ts">
+  import * as v from 'valibot';
   import ArrowDownIcon from '@lucide/svelte/icons/arrow-down';
   import ArrowUpIcon from '@lucide/svelte/icons/arrow-up';
   import BoxSelectIcon from '@lucide/svelte/icons/box-select';
@@ -10,6 +11,8 @@
   import XIcon from '@lucide/svelte/icons/x';
   import { crossfade } from 'svelte/transition';
   import { flip } from 'svelte/animate';
+  import { mergeProps } from 'bits-ui';
+  import { PersistedState } from 'runed';
   import { toast } from 'svelte-sonner';
 
   import * as Card from '$lib/components/ui/card';
@@ -21,24 +24,51 @@
   import { TextArea } from '$lib/components/ui/textarea';
   import { Tooltip, TooltipContent, TooltipTrigger } from '$lib/components/ui/tooltip';
 
+  import { DebouncedMirror } from './debounced-mirror.svelte';
+
   interface Props {
+    userId: string;
     draftId: bigint;
     maxRounds: number;
     availableLabs: Pick<schema.Lab, 'id' | 'name'>[];
   }
 
-  let { draftId, maxRounds, availableLabs = $bindable() }: Props = $props();
+  let { userId, draftId, maxRounds, availableLabs = $bindable() }: Props = $props();
 
-  let selectedLabs = $state<typeof availableLabs>([]);
+  const persistedSelectedLabs = $derived(
+    new PersistedState<typeof availableLabs>(`selected-labs-${userId}-${draftId}`, [], {
+      syncTabs: true,
+    }),
+  );
 
-  const remaining = $derived(maxRounds - selectedLabs.length);
+  const persistedAvailableLabs = $derived(
+    new PersistedState<typeof availableLabs>(`available-labs-${userId}-${draftId}`, availableLabs, {
+      syncTabs: true,
+    }),
+  );
+
+  const remaining = $derived(maxRounds - persistedSelectedLabs.current.length);
   const hasRemaining = $derived(remaining > 0);
 
+  const LabRemarksSchema = v.record(v.string(), v.string());
+  const labRemarks = $derived(
+    new DebouncedMirror({
+      key: `lab-remarks-${userId}-${draftId}`,
+      schema: LabRemarksSchema,
+      debounceMs: 500,
+    }),
+  );
+
+  function updateLabRemarks(labId: string, value: string) {
+    const next = { ...labRemarks.current };
+    if (value === '') delete next[labId];
+    else next[labId] = value;
+    labRemarks.current = next;
+  }
+
   function selectLab(index: number) {
-    if (selectedLabs.length >= maxRounds) return;
-    selectedLabs.push(...availableLabs.splice(index, 1));
-    selectedLabs = selectedLabs;
-    availableLabs = availableLabs;
+    if (persistedSelectedLabs.current.length >= maxRounds) return;
+    persistedSelectedLabs.current.push(...persistedAvailableLabs.current.splice(index, 1));
   }
 
   function moveLabUp(above: number) {
@@ -46,31 +76,31 @@
     const below = above--;
     if (above < 0) return;
 
-    const temp = selectedLabs[below];
+    const temp = persistedSelectedLabs.current[below];
     assert(typeof temp !== 'undefined');
-    const target = selectedLabs[above];
+    const target = persistedSelectedLabs.current[above];
     assert(typeof target !== 'undefined');
 
-    selectedLabs[below] = target;
-    selectedLabs[above] = temp;
+    persistedSelectedLabs.current[below] = target;
+    persistedSelectedLabs.current[above] = temp;
   }
 
   function moveLabDown(below: number) {
     // eslint-disable-next-line no-param-reassign
     const above = below++;
-    if (below >= selectedLabs.length) return;
+    if (below >= persistedSelectedLabs.current.length) return;
 
-    const temp = selectedLabs[below];
+    const temp = persistedSelectedLabs.current[below];
     assert(typeof temp !== 'undefined');
-    const target = selectedLabs[above];
+    const target = persistedSelectedLabs.current[above];
     assert(typeof target !== 'undefined');
 
-    selectedLabs[below] = target;
-    selectedLabs[above] = temp;
+    persistedSelectedLabs.current[below] = target;
+    persistedSelectedLabs.current[above] = temp;
   }
 
   function resetSelection(index: number) {
-    availableLabs.push(...selectedLabs.splice(index, 1));
+    persistedAvailableLabs.current.push(...persistedSelectedLabs.current.splice(index, 1));
   }
 
   const [send, receive] = crossfade(DURATION);
@@ -82,15 +112,17 @@
   class="space-y-4"
   use:enhance={({ submitter, cancel }) => {
     const message =
-      selectedLabs.length === 0
+      persistedSelectedLabs.current.length === 0
         ? 'Are you sure you want to skip lab preferences? You will go directly to the lottery.'
-        : `Are you sure you want to select ${selectedLabs.length} labs?`;
+        : `Are you sure you want to select ${persistedSelectedLabs.current.length} labs?`;
 
     // eslint-disable-next-line no-alert
     if (!confirm(message)) {
       cancel();
       return;
     }
+
+    labRemarks.flush();
 
     assert(submitter !== null);
     assert(submitter instanceof HTMLButtonElement);
@@ -102,6 +134,9 @@
       switch (result.type) {
         case 'success':
           toast.success('Uploaded your lab preferences.');
+          persistedAvailableLabs.disconnect();
+          persistedSelectedLabs.disconnect();
+          labRemarks.clear();
           break;
         case 'failure':
           switch (result.status) {
@@ -113,6 +148,11 @@
           }
           break;
         default:
+          toast.error(
+            typeof result.status === 'undefined'
+              ? 'An unknown error occurred while submitting your lab preferences.'
+              : `An unknown "${result.status}" error occurred while submitting your lab preferences.`,
+          );
           break;
       }
     };
@@ -130,10 +170,10 @@
       </Card.Header>
       <Card.Content class="flex grow flex-col">
         <ul
-          inert={selectedLabs.length >= maxRounds}
+          inert={persistedSelectedLabs.current.length >= maxRounds}
           class="space-y-2 empty:hidden inert:opacity-20"
         >
-          {#each availableLabs as { id, name }, idx (id)}
+          {#each persistedAvailableLabs.current as { id, name }, idx (id)}
             {@const config = { key: id }}
             <li in:receive={config} out:send={config} animate:flip={DURATION}>
               <button
@@ -146,7 +186,7 @@
             </li>
           {/each}
         </ul>
-        {#if availableLabs.length === 0}
+        {#if persistedAvailableLabs.current.length === 0}
           <div class="flex grow items-center justify-center">
             <Empty.Root>
               <Empty.Media variant="icon">
@@ -175,7 +215,7 @@
       </Card.Header>
       <Card.Content class="flex grow flex-col">
         <ol class="space-y-2 empty:hidden">
-          {#each selectedLabs as { id, name }, idx (id)}
+          {#each persistedSelectedLabs.current as { id, name }, idx (id)}
             {@const config = { key: id }}
             <li
               class="flex flex-col gap-4 rounded-lg border border-border bg-muted/20 p-4 transition-shadow hover:shadow-md dark:bg-muted"
@@ -196,12 +236,11 @@
                     <TooltipTrigger>
                       {#snippet child({ props })}
                         <Button
-                          {...props}
                           type="button"
                           size="icon"
                           class="bg-success text-success-foreground hover:bg-success/80"
-                          onclick={moveLabUp.bind(null, idx)}
                           disabled={idx <= 0}
+                          {...mergeProps(props, { onclick: moveLabUp.bind(null, idx) })}
                         >
                           <ArrowUpIcon class="size-5" />
                         </Button>
@@ -213,12 +252,11 @@
                     <TooltipTrigger>
                       {#snippet child({ props })}
                         <Button
-                          {...props}
                           type="button"
                           size="icon"
                           class="bg-warning text-warning-foreground hover:bg-warning/80"
-                          onclick={moveLabDown.bind(null, idx)}
-                          disabled={idx >= selectedLabs.length - 1}
+                          disabled={idx >= persistedSelectedLabs.current.length - 1}
+                          {...mergeProps(props, { onclick: moveLabDown.bind(null, idx) })}
                         >
                           <ArrowDownIcon class="size-5" />
                         </Button>
@@ -230,11 +268,10 @@
                     <TooltipTrigger>
                       {#snippet child({ props })}
                         <Button
-                          {...props}
                           type="button"
                           size="icon"
                           variant="destructive"
-                          onclick={resetSelection.bind(null, idx)}
+                          {...mergeProps(props, { onclick: resetSelection.bind(null, idx) })}
                         >
                           <XIcon class="size-5" />
                         </Button>
@@ -246,13 +283,16 @@
               </div>
               <TextArea
                 name="remarks"
-                placeholder={`Hello ${id.toUpperCase()}, my name is... I would like to do more research on...`}
+                placeholder="Hello {id.toUpperCase()}, my name is... I would like to do more research on..."
                 maxlength={1028}
+                bind:value={
+                  () => labRemarks.current?.[id] ?? '', value => updateLabRemarks(id, value)
+                }
               />
             </li>
           {/each}
         </ol>
-        {#if selectedLabs.length === 0}
+        {#if persistedSelectedLabs.current.length === 0}
           <div class="flex grow items-center justify-center">
             <Empty.Root>
               <Empty.Media variant="icon">

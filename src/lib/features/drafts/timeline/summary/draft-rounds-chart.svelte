@@ -73,18 +73,21 @@
       const round = index + 1;
       return {
         phaseKey: `round-${round}`,
-        phaseLabel: `R${round}`,
+        axisLabel: `R${round}`,
+        tooltipLabel: `Round ${round}`,
         assigned: roundCountByNumber.get(round) ?? 0,
       };
     }),
     {
       phaseKey: 'interventions',
-      phaseLabel: 'Interventions',
+      axisLabel: 'Interventions',
+      tooltipLabel: 'Interventions',
       assigned: filtered.interventionRecords.length,
     },
     {
       phaseKey: 'lottery',
-      phaseLabel: 'Lottery',
+      axisLabel: 'Lottery',
+      tooltipLabel: 'Lottery',
       assigned: filtered.lotteryRecords.length,
     },
   ]);
@@ -105,6 +108,10 @@
   const assignedMax = $derived(max(phaseCounts, point => point.assigned) ?? 1);
 
   const chartMax = $derived(chartMode === 'assigned' ? assignedMax : Math.max(capacity, 1));
+
+  const axisLabelByTooltipLabel = $derived(
+    new Map(phaseCounts.map(({ tooltipLabel, axisLabel }) => [tooltipLabel, axisLabel])),
+  );
 
   const integerFormat = format('d');
 
@@ -217,7 +224,7 @@
     <Chart.Container id="draft-rounds-chart" config={chartConfig} class="min-h-[280px] w-full">
       <AreaChart
         data={chartPoints}
-        x="phaseLabel"
+        x="tooltipLabel"
         y="value"
         xScale={scalePoint().padding(0)}
         padding={{ top: 8, right: 10, bottom: 20, left: 20 }}
@@ -243,6 +250,7 @@
           tooltip: { context: { mode: 'band' } },
           xAxis: {
             grid: false,
+            format: value => axisLabelByTooltipLabel.get(value) ?? `${value}`,
             motion: axisMotion,
             tickLabelProps: { dy: 8 },
           },
@@ -255,7 +263,7 @@
         }}
       >
         {#snippet tooltip()}
-          <Chart.Tooltip class="draft-rounds-chart-tooltip" indicator="dot" labelKey="phaseLabel" />
+          <Chart.Tooltip class="draft-rounds-chart-tooltip" indicator="dot" />
         {/snippet}
       </AreaChart>
     </Chart.Container>

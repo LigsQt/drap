@@ -1,6 +1,6 @@
 <script lang="ts">
   import DownloadIcon from '@lucide/svelte/icons/download';
-  import { fromUnixTime, getUnixTime } from 'date-fns';
+  import { fromUnixTime, getUnixTime, lightFormat } from 'date-fns';
 
   import { Badge } from '$lib/components/ui/badge';
   import { Button } from '$lib/components/ui/button';
@@ -9,10 +9,11 @@
 
   export interface Props {
     draftId: string;
+    requestedAt: Date;
     data: FacultyChoiceRecord[];
   }
 
-  const { draftId, data }: Props = $props();
+  const { draftId, requestedAt, data }: Props = $props();
 
   let showAutomated = $state(false);
 
@@ -79,7 +80,7 @@ Needs to distinguish the following events (one 'event' being a grouping of choic
 4. Lab received no interest, was auto-skipped [null faculty email, none of the above cases]
 -->
 
-<div class="mt-4 flex items-center justify-between">
+<div class="flex flex-col items-center justify-between gap-2 xs:mt-4 xs:flex-row">
   <label class="flex items-center space-x-2">
     <input
       class="h-4 w-4 rounded-lg border border-primary"
@@ -90,7 +91,7 @@ Needs to distinguish the following events (one 'event' being a grouping of choic
   </label>
   <Button
     href={resolve(`/dashboard/drafts/${draftId}/system-logs.csv`)}
-    download
+    download="{lightFormat(requestedAt, 'yyyy-MM-dd')}_{draftId}_system-logs.csv"
     variant="outline"
     size="sm"
   >

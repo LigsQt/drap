@@ -821,7 +821,7 @@ test.describe('Draft Lifecycle', () => {
       await expectVisibleButtons(adminPage, ['Pending Selection', 'Already Drafted']);
 
       await adminPage.getByRole('tab', { name: 'Laboratories' }).click();
-      await expectVisibleButtons(adminPage, ['See Members', 'See Preferred', 'See Interested']);
+      await expectVisibleButtons(adminPage, ['Members', 'Preferred', 'Interested']);
     });
 
     test('pending selection does not fetch before the drawer opens', async ({ adminPage }) => {
@@ -1803,19 +1803,19 @@ test.describe('Draft Lifecycle', () => {
 
         await expect(title).toHaveText('Students assigned per phase');
         await expectChartTooltipPoint(adminPage, 0, {
-          label: 'R1',
+          label: 'Round 1',
           metric: 'Assigned',
           value: 2,
           hiddenMetrics: ['Not yet assigned', 'Remaining quota'],
         });
         await expectChartTooltipPoint(adminPage, 1, {
-          label: 'R2',
+          label: 'Round 2',
           metric: 'Assigned',
           value: 1,
           hiddenMetrics: ['Not yet assigned', 'Remaining quota'],
         });
         await expectChartTooltipPoint(adminPage, 2, {
-          label: 'R3',
+          label: 'Round 3',
           metric: 'Assigned',
           value: 1,
           hiddenMetrics: ['Not yet assigned', 'Remaining quota'],
@@ -1837,19 +1837,19 @@ test.describe('Draft Lifecycle', () => {
 
         await expect(title).toHaveText('Students not yet assigned per phase');
         await expectChartTooltipPoint(adminPage, 0, {
-          label: 'R1',
+          label: 'Round 1',
           metric: 'Not yet assigned',
           value: 6,
           hiddenMetrics: ['Assigned', 'Remaining quota'],
         });
         await expectChartTooltipPoint(adminPage, 1, {
-          label: 'R2',
+          label: 'Round 2',
           metric: 'Not yet assigned',
           value: 5,
           hiddenMetrics: ['Assigned', 'Remaining quota'],
         });
         await expectChartTooltipPoint(adminPage, 2, {
-          label: 'R3',
+          label: 'Round 3',
           metric: 'Not yet assigned',
           value: 4,
           hiddenMetrics: ['Assigned', 'Remaining quota'],

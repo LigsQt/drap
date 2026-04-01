@@ -14,8 +14,8 @@
   const { draftId, lotteryDrafted, isReview }: Props = $props();
 </script>
 
-<div class="grid grid-cols-1 gap-4 md:grid-cols-[auto_1fr]">
-  <div class="prose dark:prose-invert">
+<div class="grid grid-cols-1 items-start gap-4 md:grid-cols-2">
+  <div class="prose max-w-none dark:prose-invert">
     <h3>{isReview ? 'Review Phase' : 'Lottery Phase'}</h3>
     {#if isReview}
       <p>
@@ -34,7 +34,7 @@
       </p>
     {/if}
   </div>
-  <div class="min-w-max space-y-2">
+  <div class="min-w-0 space-y-2">
     <Card.Root variant="soft">
       <Card.Header>
         <Card.Title>
