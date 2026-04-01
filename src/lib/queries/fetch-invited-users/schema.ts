@@ -7,8 +7,8 @@ export const InvitedUser = v.object({
   familyName: v.string(),
   avatarUrl: v.string(),
   googleUserId: v.null(),
-  labId: v.union([v.string(), v.null()]),
-  labName: v.union([v.string(), v.null()]),
+  labId: v.nullable(v.string()),
+  labName: v.nullable(v.string()),
 });
 export type InvitedUser = v.InferOutput<typeof InvitedUser>;
 
