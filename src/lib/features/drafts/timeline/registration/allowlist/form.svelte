@@ -80,7 +80,7 @@
     }}
   >
     <div class="flex gap-2">
-      <div class="flex-1">
+      <div class="grow">
         <Label for="allowlist-email" class="sr-only">Student Email</Label>
         <Input
           type="email"

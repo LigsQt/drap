@@ -49,7 +49,7 @@
         name="email"
         id="admin-email"
         placeholder="example@up.edu.ph"
-        class="flex-1 rounded-none border-0"
+        class="grow rounded-none border-0"
       />
       <Button type="submit" class="rounded-l-none">Invite</Button>
     </div>
