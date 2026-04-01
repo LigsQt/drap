@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { AreaChart, LinearGradient } from 'layerchart';
+  import { Area, AreaChart, LinearGradient } from 'layerchart';
   import { cubicOut } from 'svelte/easing';
   import { max } from 'd3-array';
   import { format } from 'd3-format';
@@ -180,6 +180,13 @@
               Registration Closed
             </text>
           {/if}
+        {/snippet}
+        {#snippet marks()}
+          <LinearGradient class="from-primary/50 to-primary/1" vertical>
+            {#snippet children({ gradient })}
+              <Area line={{ class: 'stroke-primary' }} fill={gradient} />
+            {/snippet}
+          </LinearGradient>
         {/snippet}
         {#snippet tooltip()}
           <Chart.Tooltip indicator="dot" labelKey="label" />
