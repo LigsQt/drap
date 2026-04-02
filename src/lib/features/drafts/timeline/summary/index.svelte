@@ -3,7 +3,6 @@
   import CheckCircle2Icon from '@lucide/svelte/icons/check-circle-2';
   import Loader2Icon from '@lucide/svelte/icons/loader-2';
   import SparklesIcon from '@lucide/svelte/icons/sparkles';
-  import UsersIcon from '@lucide/svelte/icons/users';
   import { format, lightFormat } from 'date-fns';
 
   import * as Alert from '$lib/components/ui/alert';
@@ -15,8 +14,7 @@
   import type { Draft, DraftLabQuotaSnapshot, Lab } from '$lib/features/drafts/types';
   import { Empty } from '$lib/components/ui/empty';
   import { resolve } from '$app/paths';
-
-  import DraftRoundsChart from './draft-rounds-chart.svelte';
+  import DraftStatistics from '$lib/features/drafts/statistics/index.svelte';
 
   interface Props {
     draftId: string;
@@ -29,7 +27,6 @@
   }
 
   const { draftId, requestedAt, draft, totalStudents, labs, snapshots, isReview }: Props = $props();
-  const participatingLabs = $derived(snapshots.length > 0 ? snapshots.length : labs.length);
 
   const regularDraftedQuery = $derived(
     createFetchDraftAssignmentsQuery(draftId, assignments =>
@@ -70,103 +67,7 @@
   {/if}
 
   <!-- Draft Summary Stats -->
-  <div class="grid grid-cols-1 gap-2 @[36rem]:grid-cols-2 @[58rem]:grid-cols-3">
-    <Card.Root>
-      <Card.Header>
-        <Card.Title class="text-md font-semibold tabular-nums">Total students</Card.Title>
-        <Card.Title id="stat-total-students" class="text-4xl font-semibold tabular-nums">
-          {totalStudents}
-        </Card.Title>
-      </Card.Header>
-      <Card.Footer class="flex-col items-start gap-1.5 text-sm">
-        <div class="flex items-center gap-2 font-medium text-muted-foreground">
-          <UsersIcon class="size-4 text-muted-foreground" />
-          All registered participants
-        </div>
-      </Card.Footer>
-    </Card.Root>
-
-    <Card.Root class="bg-linear-to-br from-muted/30 to-muted/10">
-      <Card.Header>
-        <Card.Title class="text-md font-semibold tabular-nums">Participating Labs</Card.Title>
-        <Card.Title id="stat-participating-labs" class="text-4xl font-semibold tabular-nums">
-          {participatingLabs}
-        </Card.Title>
-      </Card.Header>
-      <Card.Footer class="flex-col items-start gap-1.5 text-sm">
-        <div class="text-muted-foreground">Active labs in draft</div>
-      </Card.Footer>
-    </Card.Root>
-
-    <Card.Root class="bg-linear-to-br from-muted/30 to-muted/10">
-      <Card.Header>
-        <Card.Title class="text-md font-semibold tabular-nums">Max Rounds</Card.Title>
-        <Card.Title id="stat-max-rounds" class="text-4xl font-semibold tabular-nums">
-          {draft.maxRounds}
-        </Card.Title>
-      </Card.Header>
-      <Card.Footer class="flex-col items-start gap-1.5 text-sm">
-        <div class="text-muted-foreground">Regular draft rounds</div>
-      </Card.Footer>
-    </Card.Root>
-
-    {#if interventionDraftedQuery.isPending}
-      <div class="flex h-full items-center justify-center">
-        <Loader2Icon class="size-20 animate-spin" />
-      </div>
-    {:else if interventionDraftedQuery.isError}
-      <Empty>Uh oh! An error has occurred.</Empty>
-    {:else}
-      <Card.Root class="bg-linear-to-br from-muted/30 to-muted/10">
-        <Card.Header>
-          <Card.Title class="text-md font-semibold tabular-nums">Interventions</Card.Title>
-          <Card.Title id="quota-interventions" class="text-4xl font-semibold tabular-nums">
-            {interventionDraftedQuery.data.length}
-          </Card.Title>
-        </Card.Header>
-        <Card.Footer class="flex-col items-start gap-1.5 text-sm">
-          <div class="text-muted-foreground">Interventions Made</div>
-        </Card.Footer>
-      </Card.Root>
-    {/if}
-
-    {#if lotteryDraftedQuery.isPending}
-      <div class="flex h-full items-center justify-center">
-        <Loader2Icon class="size-20 animate-spin" />
-      </div>
-    {:else if lotteryDraftedQuery.isError}
-      <Empty>Uh oh! An error has occurred.</Empty>
-    {:else}
-      <Card.Root class="bg-linear-to-br from-muted/30 to-muted/10">
-        <Card.Header>
-          <Card.Title class="text-md font-semibold tabular-nums">Lottery Assignments</Card.Title>
-          <Card.Title id="stat-lottery-assignments" class="text-4xl font-semibold tabular-nums">
-            {lotteryDraftedQuery.data.length}
-          </Card.Title>
-        </Card.Header>
-        <Card.Footer class="flex-col items-start gap-1.5 text-sm">
-          <div class="text-muted-foreground">Students chosen during lottery</div>
-        </Card.Footer>
-      </Card.Root>
-    {/if}
-  </div>
-
-  {#if regularDraftedQuery.isError || interventionDraftedQuery.isError || lotteryDraftedQuery.isError}
-    <Empty>Uh oh! An error has occurred.</Empty>
-  {:else if regularDraftedQuery.isPending || interventionDraftedQuery.isPending || lotteryDraftedQuery.isPending}
-    <div class="flex h-full items-center justify-center">
-      <Loader2Icon class="size-20 animate-spin" />
-    </div>
-  {:else}
-    <DraftRoundsChart
-      records={regularDraftedQuery.data}
-      maxRounds={draft.maxRounds}
-      interventionRecords={interventionDraftedQuery.data}
-      lotteryRecords={lotteryDraftedQuery.data}
-      {labs}
-      {totalStudents}
-    />
-  {/if}
+  <DraftStatistics {draftId} maxRounds={draft.maxRounds} {totalStudents} {labs} {snapshots} />
 
   <div class="grid grid-cols-1 gap-2">
     {#if regularDraftedQuery.isPending}
