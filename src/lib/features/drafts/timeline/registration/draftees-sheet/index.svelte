@@ -2,7 +2,7 @@
   import * as Sheet from '$lib/components/ui/sheet';
   import { Button } from '$lib/components/ui/button';
 
-  import DrafteesSheetContent from './content.svelte';
+  import DrafteesSheetLoader from './loader.svelte';
 
   interface Props {
     draftId: string;
@@ -23,7 +23,7 @@
       <Sheet.Description>Browse registered and late draftees for this draft.</Sheet.Description>
     </Sheet.Header>
     <div class="flex min-h-0 grow flex-col overflow-y-auto px-4 pb-4">
-      <DrafteesSheetContent {draftId} />
+      <DrafteesSheetLoader {draftId} />
     </div>
   </Sheet.Content>
 </Sheet.Root>
