@@ -11,7 +11,7 @@
   <Drawer.Trigger>
     {#snippet child({ props })}
       <Button variant="outline" class='border-primary text-primary' {...props}>
-        See Statistics
+        See Draft Statistics
       </Button>
     {/snippet}
   </Drawer.Trigger>
