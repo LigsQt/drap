@@ -2371,7 +2371,7 @@ export async function aggregateDraftRegistrationTimelineByDay(db: DbConnection, 
     return await db
       .select({
         date: sql`date_trunc('day', ${schema.studentRank.createdAt})`.mapWith(coerceDate),
-        dailyCount: count(),
+        count: count(),
       })
       .from(schema.studentRank)
       .where(eq(schema.studentRank.draftId, draftId))

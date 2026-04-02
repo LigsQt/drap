@@ -3,13 +3,18 @@
 
   import DrafteesSheet from './draftees-sheet/index.svelte';
 
+  interface TimelineData {
+    date: Date;
+    count: number;
+  }
+
   interface Props {
     draftId: string;
     draftCreatedAt: Date;
     registrationClosedAt: Date;
     startedAt: Date | null;
     requestedAt: Date;
-    timelineData: { date: Date; count: number }[];
+    timelineData: TimelineData[];
     studentCount: number;
     lateRegistrantsCount: number;
   }

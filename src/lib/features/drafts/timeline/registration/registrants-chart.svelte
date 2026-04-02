@@ -1,12 +1,11 @@
 <script lang="ts">
   import { Area, AreaChart, LinearGradient } from 'layerchart';
   import { cubicOut } from 'svelte/easing';
+  import { eachDayOfInterval, startOfDay } from 'date-fns';
   import { format } from 'd3-format';
-  import { isAfter, startOfDay } from 'date-fns';
-  import { max, tickStep } from 'd3-array';
+  import { max, rollup, tickStep } from 'd3-array';
   import type { MotionOptions } from 'layerchart/utils/motion.svelte';
   import { prefersReducedMotion } from 'svelte/motion';
-  import { scalePoint } from 'd3-scale';
 
   import * as Card from '$lib/components/ui/card';
   import * as Chart from '$lib/components/ui/chart';
@@ -28,39 +27,31 @@
   const { draftCreatedAt, registrationClosedAt, startedAt, requestedAt, timelineData }: Props =
     $props();
 
-  const localClosedAt = $derived(new Date(registrationClosedAt));
+  const integerFormat = format('d');
+  const dayFormat = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
 
-  const regClosedLabel = $derived(
-    localClosedAt.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    }),
-  );
+  function formatDayLabel(value: Date) {
+    return dayFormat.format(value);
+  }
+
+  const chartStart = $derived(startOfDay(draftCreatedAt));
+  const chartEnd = $derived(startOfDay(startedAt ?? requestedAt));
+  const registrationClosedDay = $derived(startOfDay(registrationClosedAt));
 
   const allDaysData = $derived.by(() => {
-    const start = startOfDay(draftCreatedAt);
-    const lastDate = startOfDay(startedAt ?? requestedAt);
-    const result: { date: Date; label: string; count: number }[] = [];
-
-    const sortedData = [...timelineData].sort((a, b) => a.date.getTime() - b.date.getTime());
-
-    // eslint-disable-next-line svelte/prefer-svelte-reactivity
-    const currentDate = new Date(start);
-    while (!isAfter(currentDate, lastDate)) {
-      const currentStr = currentDate.toDateString();
-      const dayData = sortedData.find(d => d.date.toDateString() === currentStr);
-      result.push({
-        date: new Date(currentDate),
-        label: currentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        count: dayData?.count ?? 0,
-      });
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-
-    return result;
+    const countByDay = rollup(
+      timelineData,
+      values => values.reduce((total, { count }) => total + count, 0),
+      ({ date }) => startOfDay(date).getTime(),
+    );
+    return eachDayOfInterval({ start: chartStart, end: chartEnd }).map(date => ({
+      date,
+      label: formatDayLabel(date),
+      count: countByDay.get(date.getTime()) ?? 0,
+    }));
   });
 
-  const yMax = $derived(max(timelineData, ({ count }) => count) ?? 1);
+  const yMax = $derived(max(allDaysData, ({ count }) => count) ?? 1);
   const yTicks = $derived.by(() => {
     const step = Math.max(1, tickStep(0, yMax, 4));
     const ticks = Array.from({ length: Math.floor(yMax / step) + 1 }, (_, index) => index * step);
@@ -68,24 +59,28 @@
     return [...ticks, yMax];
   });
 
-  const xTicks = $derived(allDaysData.map(({ label }) => label));
-
-  const integerFormat = format('d');
-
-  const chartConfig = $derived({
-    count: {
-      label: 'Registrants',
-      color: 'var(--primary)',
-    },
-  } satisfies Chart.ChartConfig);
-
-  const chartSeries = $derived([
-    {
-      key: 'count',
-      label: 'Registrants',
-      color: 'var(--color-count)',
-    },
-  ]);
+  const annotations = $derived.by(() => {
+    const closedAt = registrationClosedDay.getTime();
+    if (closedAt < chartStart.getTime() || closedAt > chartEnd.getTime()) return [];
+    return [
+      {
+        type: 'line' as const,
+        x: registrationClosedDay,
+        label: 'Registration Closed',
+        labelPlacement: 'top-left' as const,
+        props: {
+          line: {
+            stroke: '#ef4444',
+            strokeDasharray: '4,4',
+            strokeWidth: 1,
+          },
+          label: {
+            fill: '#ef4444',
+          },
+        },
+      },
+    ];
+  });
 
   const { chartMotion, axisMotion } = $derived<{
     chartMotion: MotionOptions;
@@ -122,17 +117,29 @@
     </div>
   </Card.Header>
   <Card.Content class="pt-0">
-    <Chart.Container id="registrants-chart" config={chartConfig} class="h-[500px] w-full">
+    <Chart.Container
+      id="registrants-chart"
+      config={{
+        count: {
+          label: 'Registrants',
+          color: 'var(--color-primary)',
+        },
+      }}
+      class="h-[500px] w-full"
+    >
       <AreaChart
         data={allDaysData}
-        x="label"
+        x="date"
         y="count"
-        xScale={scalePoint().padding(0)}
-        padding={{ top: 8, right: 10, bottom: 20, left: 20 }}
-        series={chartSeries}
-        legend={false}
+        {annotations}
+        series={[
+          {
+            key: 'count',
+            label: 'Registrants',
+            color: 'var(--color-primary)',
+          },
+        ]}
         points
-        grid
         yDomain={[0, yMax]}
         props={{
           area: {
@@ -141,8 +148,11 @@
             line: { strokeWidth: 3, motion: chartMotion },
           },
           points: { r: 5.5, motion: chartMotion },
-          tooltip: { context: { mode: 'band' } },
-          xAxis: { grid: false, motion: axisMotion, tickLabelProps: { dy: 8 }, ticks: xTicks },
+          xAxis: {
+            format: value => (value instanceof Date ? formatDayLabel(value) : `${value}`),
+            motion: axisMotion,
+            tickLabelProps: { dy: 8 },
+          },
           yAxis: {
             ticks: yTicks,
             format: value => integerFormat(value),
@@ -151,30 +161,6 @@
           },
         }}
       >
-        {#snippet aboveMarks({ context })}
-          {@const { xScale, yScale } = context}
-          {#if xScale && regClosedLabel}
-            {@const [y1, y2] = yScale.range()}
-            <line
-              x1={xScale(regClosedLabel)}
-              x2={xScale(regClosedLabel)}
-              {y1}
-              {y2}
-              stroke="#ef4444"
-              stroke-dasharray="4,4"
-              stroke-width="1"
-            />
-            <text
-              x={xScale(regClosedLabel)}
-              y={y2 - 10}
-              text-anchor="middle"
-              fill="#ef4444"
-              font-size="11"
-            >
-              Registration Closed
-            </text>
-          {/if}
-        {/snippet}
         {#snippet marks()}
           <LinearGradient class="from-primary/50 to-primary/1" vertical>
             {#snippet children({ gradient })}
@@ -183,7 +169,10 @@
           </LinearGradient>
         {/snippet}
         {#snippet tooltip()}
-          <Chart.Tooltip indicator="dot" labelKey="label" />
+          <Chart.Tooltip
+            indicator="dot"
+            labelFormatter={value => (value instanceof Date ? formatDayLabel(value) : `${value}`)}
+          />
         {/snippet}
       </AreaChart>
     </Chart.Container>

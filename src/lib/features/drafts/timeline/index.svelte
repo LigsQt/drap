@@ -24,6 +24,11 @@
     | 'review'
     | 'finalized';
 
+  interface TimelineData {
+    date: Date;
+    count: number;
+  }
+
   interface Props {
     draftId: bigint;
     requestedAt: Date;
@@ -33,7 +38,7 @@
     finalized: DraftFinalizedBreakdown;
     allowlistCount: number;
     lateRegistrantsCount: number;
-    timelineData: { date: Date; count: number }[];
+    timelineData: TimelineData[];
   }
 
   const {
@@ -55,7 +60,7 @@
     if (draft.currRound === null) return 'review';
     if (draft.currRound === 0)
       return draft.isRegistrationClosed ? 'registration-closed' : 'registration';
-    if (draft.currRound !== null && draft.currRound > draft.maxRounds) return 'intervention';
+    if (draft.currRound > draft.maxRounds) return 'intervention';
     return 'regular';
   });
 
