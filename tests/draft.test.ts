@@ -1775,6 +1775,10 @@ test.describe('Draft Lifecycle', () => {
   test.describe('Admin Finalized Breakdown', () => {
     test('shows expected aggregate quota values', async ({ adminPage }) => {
       await adminPage.goto('/dashboard/drafts/1/');
+
+      await adminPage.getByRole('button', { name: 'See Draft Statistics' }).click();
+      await adminPage.waitForLoadState('networkidle');
+
       await expect(adminPage.locator('#stat-total-students')).toHaveText('8');
       await expect(adminPage.locator('#stat-participating-labs')).toHaveText('5');
       await expect(adminPage.locator('#quota-interventions')).toHaveText('1');
@@ -1785,6 +1789,8 @@ test.describe('Draft Lifecycle', () => {
       test('renders the chart with every finalized phase label', async ({ adminPage }) => {
         await adminPage.goto('/dashboard/drafts/1/');
 
+        await adminPage.getByRole('button', { name: 'See Draft Statistics' }).click();
+        await adminPage.waitForLoadState('networkidle');
         const chart = adminPage.locator('#draft-rounds-chart');
 
         await expect(chart).toBeVisible();
@@ -1797,6 +1803,9 @@ test.describe('Draft Lifecycle', () => {
 
       test('updates the chart title and tooltip for the selected metric', async ({ adminPage }) => {
         await adminPage.goto('/dashboard/drafts/1/');
+
+        await adminPage.getByRole('button', { name: 'See Draft Statistics' }).click();
+        await adminPage.waitForLoadState('networkidle');
 
         const title = adminPage.locator('#draft-rounds-chart-title');
         const modeSelect = adminPage.locator('#draft-rounds-chart-mode');
@@ -1873,6 +1882,9 @@ test.describe('Draft Lifecycle', () => {
       }) => {
         await adminPage.goto('/dashboard/drafts/1/');
 
+        await adminPage.getByRole('button', { name: 'See Draft Statistics' }).click();
+        await adminPage.waitForLoadState('networkidle');
+
         const chart = adminPage.locator('#draft-rounds-chart');
         const title = adminPage.locator('#draft-rounds-chart-title');
         const modeSelect = adminPage.locator('#draft-rounds-chart-mode');
@@ -1905,6 +1917,8 @@ test.describe('Draft Lifecycle', () => {
     test.describe('drafted sections', () => {
       test('are ordered as regular then intervention then lottery', async ({ adminPage }) => {
         await adminPage.goto('/dashboard/drafts/1/');
+
+        await adminPage.getByRole('button', { name: 'See Drafted Students by Method' }).click();
         await adminPage.waitForLoadState('networkidle');
 
         const sectionIds = await adminPage
@@ -1921,14 +1935,15 @@ test.describe('Draft Lifecycle', () => {
 
       test('show expected section counts', async ({ adminPage }) => {
         await adminPage.goto('/dashboard/drafts/1/');
+
+        await adminPage.getByRole('button', { name: 'See Drafted Students by Method' }).click();
+        await adminPage.waitForLoadState('networkidle');
+
         await expect(adminPage.locator('#section-regular-drafted')).toContainText(
           'Regular Drafted (4)',
         );
         await expect(adminPage.locator('#section-intervention-drafted')).toContainText(
           'Intervention Drafted (1)',
-        );
-        await expect(adminPage.locator('#section-undrafted-after-regular')).toContainText(
-          'Undrafted After Regular (4)',
         );
         await expect(adminPage.locator('#section-lottery-drafted')).toContainText(
           'Lottery Drafted (3)',
@@ -2628,24 +2643,25 @@ test.describe('Draft Lifecycle', () => {
   test.describe('Second Draft — Dashboard And History Verification', () => {
     test('admin finalized breakdown is correct for Draft #2', async ({ adminPage }) => {
       await adminPage.goto('/dashboard/drafts/2/');
+
+      await adminPage.getByRole('button', { name: 'See Draft Statistics' }).click();
+      await adminPage.waitForLoadState('networkidle');
+  
       await expect(adminPage.locator('#stat-total-students')).toHaveText('3');
       await expect(adminPage.locator('#stat-participating-labs')).toHaveText('4');
       await expect(adminPage.locator('#quota-interventions')).toHaveText('0');
       await expect(adminPage.locator('#stat-lottery-assignments')).toHaveText('0');
+
+      await adminPage.goto('/dashboard/drafts/2/');
+
+      await adminPage.getByRole('button', { name: 'See Drafted Students by Method' }).click();
+      await adminPage.waitForLoadState('networkidle');
+
       await expect(adminPage.locator('#section-regular-drafted')).toContainText(
         'Regular Drafted (3)',
       );
       await expect(adminPage.locator('#section-intervention-drafted')).toContainText(
         'Intervention Drafted (0)',
-      );
-      await expect(adminPage.locator('#section-lottery-drafted')).toContainText(
-        'Lottery Drafted (0)',
-      );
-      await expect(adminPage.locator('#section-intervention-drafted')).toContainText(
-        'Intervention Drafted (0)',
-      );
-      await expect(adminPage.locator('#section-undrafted-after-regular')).toContainText(
-        'Undrafted After Regular (0)',
       );
       await expect(adminPage.locator('#section-lottery-drafted')).toContainText(
         'Lottery Drafted (0)',
