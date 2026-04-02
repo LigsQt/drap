@@ -22,7 +22,11 @@
         <div class="flex items-center justify-between space-y-1">
           <div class="flex flex-col">
             <span>{familyName.toUpperCase()}, {givenName}</span>
-            <span class="text-sm text-muted-foreground">{studentNumber} | {email}</span>
+            {#if studentNumber === null}
+              <span class="text-sm text-muted-foreground">{email}</span>
+            {:else}
+              <span class="text-sm text-muted-foreground">{studentNumber} | {email}</span>
+            {/if}
           </div>
           <div class="flex items-center justify-end gap-1">
             <DesignatedLab {labId} />
@@ -47,7 +51,11 @@
         <div class="flex items-center justify-between space-y-1">
           <div class="flex flex-col">
             <span>{familyName.toUpperCase()}, {givenName}</span>
-            <span class="text-sm text-muted-foreground">{studentNumber} | {email}</span>
+            {#if studentNumber === null}
+              <span class="text-sm text-muted-foreground">{email}</span>
+            {:else}
+              <span class="text-sm text-muted-foreground">{studentNumber} | {email}</span>
+            {/if}
           </div>
           <div class="flex items-center justify-end gap-1">
             <DesignatedLab {labId} />
@@ -78,7 +86,11 @@
         <div class="flex items-center justify-between space-y-1">
           <div class="flex flex-col">
             <span>{familyName.toUpperCase()}, {givenName}</span>
-            <span class="text-sm text-muted-foreground">{studentNumber} | {email}</span>
+            {#if studentNumber === null}
+              <span class="text-sm text-muted-foreground">{email}</span>
+            {:else}
+              <span class="text-sm text-muted-foreground">{studentNumber} | {email}</span>
+            {/if}
           </div>
           <DesignatedLab {labId} />
         </div>
