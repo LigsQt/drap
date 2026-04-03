@@ -10,7 +10,6 @@
   import DraftedLoader from '$lib/features/drafts/draftees/drafted/loader.svelte';
   import SystemLogsLoader from '$lib/features/drafts/system-logs/loader.svelte';
   import { Button } from '$lib/components/ui/button';
-  import { cn } from '$lib/components/ui/utils';
   import type { Lab } from '$lib/features/drafts/types';
 
   import LabRoundSummary from './lab-round-summary.svelte';
@@ -63,10 +62,7 @@
                 variant="outline"
                 class="bg-background hover:bg-accent dark:bg-input dark:hover:bg-input/80"
               >
-                <ChevronDownIcon
-                  class=
-                    'size-4 text-muted-foreground transition-transform'
-                />
+                <ChevronDownIcon class="size-4 text-muted-foreground transition-transform" />
                 {selectedView === 'pending' ? 'Pending Selection' : 'Already Drafted'}
               </Button>
             {/snippet}
