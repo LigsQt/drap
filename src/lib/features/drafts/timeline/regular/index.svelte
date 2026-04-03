@@ -4,6 +4,7 @@
   import GraduationCapIcon from '@lucide/svelte/icons/graduation-cap';
   import PaperclipIcon from '@lucide/svelte/icons/paperclip';
 
+  import { cn } from '$lib/components/ui/utils';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
   import * as Tabs from '$lib/components/ui/tabs';
   import AvailableLoader from '$lib/features/drafts/draftees/available/loader.svelte';
@@ -63,9 +64,10 @@
               class="bg-background hover:bg-accent dark:bg-input dark:hover:bg-input/80"
             >
               <ChevronDownIcon
-                class="size-4 text-muted-foreground transition-transform {dropdownOpen
-                  ? 'rotate-180'
-                  : ''}"
+                class={cn(
+                  'size-4 text-muted-foreground transition-transform',
+                  dropdownOpen && 'rotate-180',
+                )}
               />
               {selectedView === 'pending' ? 'Pending Selection' : 'Already Drafted'}
             </Button>
