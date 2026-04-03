@@ -60,7 +60,7 @@
     </Tabs.List>
   </div>
   <Tabs.Content value="students">
-    <div class="mb-2">
+    <div class="flex justify-center xs:justify-start mb-2">
       <DropdownMenu.Root bind:open={dropdownOpen}>
         <DropdownMenu.Trigger>
           {#snippet child({ props })}
