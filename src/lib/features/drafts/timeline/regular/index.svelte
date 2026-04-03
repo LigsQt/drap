@@ -28,7 +28,6 @@
 
   let group: TabType = $state('students');
   let selectedView = $state<'pending' | 'drafted'>('pending');
-  let dropdownOpen = $state(false);
 </script>
 
 <Tabs.Root
@@ -56,7 +55,7 @@
   <Tabs.Content value="students">
     {#if group === 'students'}
       <div class="mb-2 flex justify-center xs:justify-start">
-        <DropdownMenu.Root bind:open={dropdownOpen}>
+        <DropdownMenu.Root>
           <DropdownMenu.Trigger>
             {#snippet child({ props })}
               <Button
@@ -65,10 +64,8 @@
                 class="bg-background hover:bg-accent dark:bg-input dark:hover:bg-input/80"
               >
                 <ChevronDownIcon
-                  class={cn(
-                    'size-4 text-muted-foreground transition-transform',
-                    dropdownOpen && 'rotate-180',
-                  )}
+                  class=
+                    'size-4 text-muted-foreground transition-transform'
                 />
                 {selectedView === 'pending' ? 'Pending Selection' : 'Already Drafted'}
               </Button>
