@@ -4,14 +4,12 @@
   import PaperclipIcon from '@lucide/svelte/icons/paperclip';
 
   import * as Tabs from '$lib/components/ui/tabs';
-  import AvailableDraftees from '$lib/features/drafts/draftees/available/index.svelte';
-  import DraftedDraftees from '$lib/features/drafts/draftees/drafted/index.svelte';
-  import SystemLogsLoader from '$lib/features/drafts/system-logs/loader.svelte';
   import type { Lab } from '$lib/features/drafts/types';
 
   import LabRoundSummary from './lab-round-summary.svelte';
+  import StudentsSummary from './students-summary.svelte';
 
-  type TabType = 'students' | 'labs' | 'logs';
+  import SystemLogsLoader from './system-logs/loader.svelte';
 
   interface Props {
     draftId: string;
@@ -22,15 +20,10 @@
 
   const { draftId, requestedAt, round, labs }: Props = $props();
 
-  let group: TabType = $state('students');
+  let group = $state<'students' | 'labs' | 'logs'>('students');
 </script>
 
-<Tabs.Root
-  value={group}
-  onValueChange={value => {
-    if (value === 'students' || value === 'labs' || value === 'logs') group = value;
-  }}
->
+<Tabs.Root bind:value={group}>
   <div class="flex justify-around sm:justify-normal">
     <Tabs.List class="grid h-full w-full grid-cols-3">
       <Tabs.Trigger value="students">
@@ -48,17 +41,16 @@
     </Tabs.List>
   </div>
   <Tabs.Content value="students">
-    <div class="flex flex-col items-center justify-around gap-2 sm:flex-row">
-      <AvailableDraftees {draftId} variant="pending-selection"
-        >No available draftees.</AvailableDraftees
-      >
-      <DraftedDraftees {draftId}>No drafted students yet.</DraftedDraftees>
-    </div>
+    {#if group === 'students'}
+      <StudentsSummary {draftId} />
+    {/if}
   </Tabs.Content>
   <Tabs.Content value="labs" class="min-w-0 overflow-auto">
-    {#each labs as lab (lab.id)}
-      <LabRoundSummary {draftId} {round} {lab} />
-    {/each}
+    {#if group === 'labs'}
+      {#each labs as lab (lab.id)}
+        <LabRoundSummary {draftId} {round} {lab} />
+      {/each}
+    {/if}
   </Tabs.Content>
   <Tabs.Content value="logs">
     {#if group === 'logs'}
