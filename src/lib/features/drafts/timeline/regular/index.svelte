@@ -14,8 +14,6 @@
 
   import LabRoundSummary from './lab-round-summary.svelte';
 
-  type TabType = 'students' | 'labs' | 'logs';
-
   interface Props {
     draftId: string;
     requestedAt: Date;
@@ -25,16 +23,11 @@
 
   const { draftId, requestedAt, round, labs }: Props = $props();
 
-  let group: TabType = $state('students');
+  let group = $state<'students' | 'labs' | 'logs'>('students');
   let selectedView = $state<'pending' | 'drafted'>('pending');
 </script>
 
-<Tabs.Root
-  value={group}
-  onValueChange={value => {
-    if (value === 'students' || value === 'labs' || value === 'logs') group = value;
-  }}
->
+<Tabs.Root bind:value={group}>
   <div class="flex justify-around sm:justify-normal">
     <Tabs.List class="grid h-full w-full grid-cols-3">
       <Tabs.Trigger value="students">
@@ -58,9 +51,9 @@
           <DropdownMenu.Trigger>
             {#snippet child({ props })}
               <Button
-                {...props}
                 variant="outline"
                 class="bg-background hover:bg-accent dark:bg-input dark:hover:bg-input/80"
+                {...props}
               >
                 <ChevronDownIcon class="size-4 text-muted-foreground transition-transform" />
                 {selectedView === 'pending' ? 'Pending Selection' : 'Already Drafted'}
@@ -77,7 +70,6 @@
           </DropdownMenu.Content>
         </DropdownMenu.Root>
       </div>
-
       {#if selectedView === 'pending'}
         <span class="text-sm text-muted-foreground"
           >Review undrafted students available for selection.</span
@@ -96,9 +88,11 @@
     {/if}
   </Tabs.Content>
   <Tabs.Content value="labs" class="min-w-0 overflow-auto">
-    {#each labs as lab (lab.id)}
-      <LabRoundSummary {draftId} {round} {lab} />
-    {/each}
+    {#if group === 'labs'}
+      {#each labs as lab (lab.id)}
+        <LabRoundSummary {draftId} {round} {lab} />
+      {/each}
+    {/if}
   </Tabs.Content>
   <Tabs.Content value="logs">
     {#if group === 'logs'}
