@@ -141,14 +141,14 @@ function buildLabDistribution(
 
 const ORDINAL_SUFFIXES = ['th', 'st', 'nd', 'rd'] as const;
 
-function ordinalChoice(rank: number): string {
+export function ordinalChoice(rank: number): string {
   const mod100 = rank % 100;
   // 11th, 12th, 13th are exceptions to the normal pattern
   const suffix = mod100 >= 11 && mod100 <= 13 ? 'th' : (ORDINAL_SUFFIXES[rank % 10] ?? 'th');
   return `${rank}${suffix} Choice`;
 }
 
-function buildPreferenceAlignment(
+export function buildPreferenceAlignment(
   rows: DraftPreferenceAlignmentRow[],
 ): DraftSummaryChartData['preferenceAlignment'] {
   const buckets = new Map<number | null, number>();
