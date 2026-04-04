@@ -62,15 +62,25 @@
     if (hideLabel || tooltipPayload.length === 0) return null;
 
     const [item] = tooltipPayload;
-    const key = labelKey ?? item?.label ?? 'value';
 
-    const itemConfig = getPayloadConfigFromPayload(chart.config, item, key);
-    const value =
-      !labelKey && typeof label === 'string'
-        ? (chart.config[label as keyof typeof chart.config]?.label ?? label)
-        : (itemConfig?.label ?? item?.label);
+    // eslint-disable-next-line @typescript-eslint/init-declarations
+    let value: unknown;
+    if (typeof label === 'string') {
+      value = chart.config[label as keyof typeof chart.config]?.label ?? label;
+    } else if (labelKey) {
+      const itemConfig = getPayloadConfigFromPayload(chart.config, item, labelKey);
+      value = itemConfig?.label ?? item?.label;
+    } else {
+      // Bar/area charts: ctx.x() returns the category string/Date.
+      // Pie charts: ctx.x() returns a number (the value) — fall back to item label.
+      const xValue =
+        ctx.tooltip.data === null || typeof ctx.tooltip.data === 'undefined'
+          ? null
+          : ctx.x(ctx.tooltip.data);
+      value = typeof xValue === 'string' || xValue instanceof Date ? xValue : item?.label;
+    }
 
-    if (typeof value === 'undefined') return null;
+    if (value === null || typeof value === 'undefined') return null;
     if (labelFormatter === null) return value;
     return labelFormatter(value, tooltipPayload);
   });
