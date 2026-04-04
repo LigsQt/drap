@@ -19,7 +19,7 @@ services:
       retries: 5
 
   inngest:
-    image: inngest/inngest:v1.17.8
+    image: inngest/inngest:v1.17.9
     extra_hosts:
       - host.docker.internal:host-gateway
     networks:
