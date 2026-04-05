@@ -1,8 +1,10 @@
 <script lang="ts">
+  import CircleHelpIcon from '@lucide/svelte/icons/circle-help';
   import { BarChart } from 'layerchart';
 
   import * as Card from '$lib/components/ui/card';
   import * as Chart from '$lib/components/ui/chart';
+  import * as Popover from '$lib/components/ui/popover';
   import { assert } from '$lib/assert';
   import type { DraftSupplyDemandEntry } from '$lib/features/drafts/types';
 
@@ -34,7 +36,58 @@
   class="overflow-hidden border-border/60 bg-linear-to-br from-muted/40 via-background to-muted/10 shadow-xs"
 >
   <Card.Header>
-    <Card.Title>Proportional Supply versus Demand versus Actual</Card.Title>
+    <Card.Title class="flex items-center gap-1.5">
+      <span>Proportional Supply versus Demand versus Actual</span>
+      <Popover.Root>
+        <Popover.Trigger class="leading-none">
+          <CircleHelpIcon class="size-3.5 text-muted-foreground" />
+        </Popover.Trigger>
+        <Popover.Content class="max-w-xs space-y-2 text-sm font-normal">
+          <p>
+            Each bar shows a lab's proportional share relative to all labs. All three series are
+            normalized so they sum to 100%.
+          </p>
+          <ul class="list-disc space-y-1.5 pl-4">
+            <li>
+              <strong>Supply</strong>
+              <math>
+                <mo>(</mo>
+                <msub><mi>q</mi><mi>i</mi></msub>
+                <mo>/</mo>
+                <mo>&sum;</mo><mi>q</mi>
+                <mo>)</mo>
+              </math>
+              — the lab's share of total available capacity, combining both initial and lottery quotas.
+            </li>
+            <li>
+              <strong>Demand</strong>
+              <math>
+                <mo>(</mo>
+                <msub><mi>B</mi><mi>i</mi></msub>
+                <mo>/</mo>
+                <mo>&sum;</mo><mi>B</mi>
+                <mo>)</mo>
+              </math>
+              — the lab's share of preference-weighted demand. Each student's ranking assigns Borda points:
+              a student who ranked <math><mi>n</mi></math> labs gives
+              <math><mi>n</mi></math> points to their 1st choice,
+              <math><mi>n</mi><mo>-</mo><mn>1</mn></math> to their 2nd, down to 1 for their last.
+            </li>
+            <li>
+              <strong>Actual</strong>
+              <math>
+                <mo>(</mo>
+                <msub><mi>a</mi><mi>i</mi></msub>
+                <mo>/</mo>
+                <mo>&sum;</mo><mi>a</mi>
+                <mo>)</mo>
+              </math>
+              — the lab's share of students actually assigned after all draft phases.
+            </li>
+          </ul>
+        </Popover.Content>
+      </Popover.Root>
+    </Card.Title>
     <Card.Description>
       Normalized share of capacity, Borda-weighted demand, and actual assignments per lab
     </Card.Description>

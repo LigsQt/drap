@@ -51,7 +51,9 @@
   );
 </script>
 
-<Card.Root>
+<Card.Root
+  class="overflow-hidden border-border/60 bg-linear-to-br from-muted/40 via-background to-muted/10 shadow-xs"
+>
   <Card.Header>
     <Card.Title>Students per Lab</Card.Title>
     <Card.Description>Distribution of assignments across labs</Card.Description>
