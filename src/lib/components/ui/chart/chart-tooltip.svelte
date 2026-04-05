@@ -19,6 +19,7 @@
     labelKey?: string;
     hideIndicator?: boolean;
     labelClassName?: string;
+    labelAccessor?: ((data: unknown) => unknown) | null;
     labelFormatter?:
       | ((value: unknown, payload: TooltipPayload[]) => string | number | Snippet)
       | null;
@@ -44,6 +45,7 @@
     hideIndicator = false,
     labelKey,
     label,
+    labelAccessor = null,
     labelFormatter = defaultFormatter,
     valueFormatter = null,
     labelClassName,
@@ -72,14 +74,11 @@
     } else if (labelKey) {
       const itemConfig = getPayloadConfigFromPayload(chart.config, item, labelKey);
       value = itemConfig?.label ?? item?.label;
-    } else {
-      // Bar/area charts: ctx.x() returns the category string/Date.
-      // Pie charts: ctx.x() returns a number (the value) — fall back to item label.
-      const xValue =
+    } else if (labelAccessor !== null) {
+      value =
         ctx.tooltip.data === null || typeof ctx.tooltip.data === 'undefined'
           ? null
-          : ctx.x(ctx.tooltip.data);
-      value = typeof xValue === 'string' || xValue instanceof Date ? xValue : item?.label;
+          : labelAccessor(ctx.tooltip.data);
     }
 
     if (value === null || typeof value === 'undefined') return null;

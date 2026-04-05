@@ -123,6 +123,10 @@
         {#snippet tooltip()}
           <Chart.Tooltip
             indicator="dot"
+            labelAccessor={d => {
+              assert(typeof d === 'object' && d !== null && 'lab' in d);
+              return d.lab;
+            }}
             labelFormatter={value => {
               assert(typeof value === 'string');
               return labNameById.get(value) ?? value;

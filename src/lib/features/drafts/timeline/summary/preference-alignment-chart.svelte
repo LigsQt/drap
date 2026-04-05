@@ -88,7 +88,14 @@
         legend={{ orientation: 'vertical', placement: 'right' }}
       >
         {#snippet tooltip()}
-          <Chart.Tooltip indicator="dot" hideLabel />
+          <Chart.Tooltip
+            indicator="dot"
+            hideLabel
+            labelAccessor={d => {
+              assert(typeof d === 'object' && d !== null && 'label' in d);
+              return d.label;
+            }}
+          />
         {/snippet}
       </PieChart>
       <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">

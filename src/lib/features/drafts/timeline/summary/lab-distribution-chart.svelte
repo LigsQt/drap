@@ -39,12 +39,11 @@
     ),
   );
 
-  const labNameByShortLabel = $derived(new Map(data.map(e => [shortLabel(e), e.labName])));
-
   const chartData = $derived(
     data.map((entry, i) => ({
       key: shortLabel(entry),
       label: shortLabel(entry),
+      labName: entry.labName,
       value: entry.count,
       color: chartColor(i),
     })),
@@ -71,9 +70,9 @@
         {#snippet tooltip()}
           <Chart.Tooltip
             indicator="dot"
-            labelFormatter={value => {
-              assert(typeof value === 'string');
-              return labNameByShortLabel.get(value) ?? value;
+            labelAccessor={d => {
+              assert(typeof d === 'object' && d !== null && 'labName' in d);
+              return d.labName;
             }}
           />
         {/snippet}
