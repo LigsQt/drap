@@ -61,6 +61,13 @@ async function expectStudentsCallout(
   await expect(page.getByRole('button', { name: 'Update Selection' })).toHaveCount(0);
 }
 
+async function getHistoryTimelineTexts(page: Page, draftId: number) {
+  await page.goto(`/history/${draftId}/`);
+  const rows = page.locator('section > ol.border-s > li.ms-6 ol.space-y-1 > li');
+  const textContents = await rows.allTextContents();
+  return textContents.map(text => text.replaceAll(/\s+/gu, ' ').trim());
+}
+
 async function postFacultyRankings(
   page: Page,
   draft: number,
@@ -1153,7 +1160,17 @@ test.describe('Draft Lifecycle', () => {
           cvmilHeadPage,
           'No undrafted students have selected this lab in this round.',
           ['This lab has no more draft slots remaining for the rest of this draft.'],
+          { title: 'No Student Preferences This Round' },
         );
+      });
+
+      test('server rejects forced updates after round-start no-preferences auto-acknowledgement', async ({
+        cvmilHeadPage,
+      }) => {
+        await cvmilHeadPage.goto('/dashboard/students/');
+        const status = await postFacultyRankings(cvmilHeadPage, 1, 1);
+
+        expect(status).toBe(409);
       });
     });
 
@@ -1310,6 +1327,7 @@ test.describe('Draft Lifecycle', () => {
           ndslHeadPage,
           'No undrafted students have selected this lab in this round.',
           ['This lab has no more draft slots remaining for the rest of this draft.'],
+          { title: 'No Student Preferences This Round' },
         );
       });
 
@@ -1339,6 +1357,7 @@ test.describe('Draft Lifecycle', () => {
           sclHeadPage,
           'No undrafted students have selected this lab in this round.',
           ['This lab has no more draft slots remaining for the rest of this draft.'],
+          { title: 'No Student Preferences This Round' },
         );
       });
 
@@ -1354,6 +1373,7 @@ test.describe('Draft Lifecycle', () => {
           aclHeadPage,
           'No undrafted students have selected this lab in this round.',
           ['This lab has no more draft slots remaining for the rest of this draft.'],
+          { title: 'No Student Preferences This Round' },
         );
       });
 
@@ -1482,6 +1502,7 @@ test.describe('Draft Lifecycle', () => {
           cslHeadPage,
           'This lab has no more draft slots remaining for the rest of this draft.',
           ['No undrafted students have selected this lab in this round.'],
+          { title: 'No Slots Remaining' },
         );
       });
 
@@ -1518,6 +1539,7 @@ test.describe('Draft Lifecycle', () => {
           sclHeadPage,
           'No undrafted students have selected this lab in this round.',
           ['This lab has no more draft slots remaining for the rest of this draft.'],
+          { title: 'No Student Preferences This Round' },
         );
       });
 
@@ -1533,6 +1555,7 @@ test.describe('Draft Lifecycle', () => {
           cvmilHeadPage,
           'No undrafted students have selected this lab in this round.',
           ['This lab has no more draft slots remaining for the rest of this draft.'],
+          { title: 'No Student Preferences This Round' },
         );
       });
 
@@ -1586,12 +1609,8 @@ test.describe('Draft Lifecycle', () => {
     });
 
     test('detail page shows ordered round events', async ({ page }) => {
-      await page.goto('/history/1/');
+      const texts = await getHistoryTimelineTexts(page, 1);
       await expect(page.getByText('lottery stage')).toBeVisible();
-
-      const items = page.locator('section > ol.border-s > li.ms-6 ol.space-y-1 > li');
-      const textContents = await items.allTextContents();
-      const texts = textContents.map(text => text.replaceAll(/\s+/gu, ' ').trim());
 
       function idx(regex: RegExp) {
         return texts.findIndex(t => regex.test(t));
@@ -1613,8 +1632,32 @@ test.describe('Draft Lifecycle', () => {
       expect(anyRound2Batch).toBeLessThan(anyRound1Batch);
       // Entries are grouped by second; intra-second ordering can vary.
 
-      // System skips exist (non-deterministic order, just check presence)
-      expect(idx(/system has skipped/isu)).toBeGreaterThanOrEqual(0);
+      const skipEntries = texts.filter(text => /system has skipped/iu.test(text));
+      expect(skipEntries).toHaveLength(7);
+      expect(
+        skipEntries.some(text => /system has skipped the CVMIL for the 1st round/iu.test(text)),
+      ).toBe(true);
+      expect(
+        skipEntries.some(text => /system has skipped the NDSL for the 2nd round/iu.test(text)),
+      ).toBe(true);
+      expect(
+        skipEntries.some(text => /system has skipped the SCL for the 2nd round/iu.test(text)),
+      ).toBe(true);
+      expect(
+        skipEntries.some(text => /system has skipped the ACL for the 2nd round/iu.test(text)),
+      ).toBe(true);
+      expect(
+        skipEntries.some(text => /system has skipped the CSL for the 3rd round/iu.test(text)),
+      ).toBe(true);
+      expect(
+        skipEntries.some(text => /system has skipped the SCL for the 3rd round/iu.test(text)),
+      ).toBe(true);
+      expect(
+        skipEntries.some(text => /system has skipped the CVMIL for the 3rd round/iu.test(text)),
+      ).toBe(true);
+      expect(
+        skipEntries.some(text => /system has skipped the NDSL for the 1st round/iu.test(text)),
+      ).toBe(false);
 
       // Creation is last
       expect(idx(/was created/u)).toBe(texts.length - 1);
@@ -2108,11 +2151,7 @@ test.describe('Draft Lifecycle', () => {
       });
 
       test('keeps timeline boundary events in place', async ({ page }) => {
-        await page.goto('/history/1/');
-
-        const rows = page.locator('section > ol.border-s > li.ms-6 ol.space-y-1 > li');
-        const textContents = await rows.allTextContents();
-        const texts = textContents.map(text => text.replaceAll(/\s+/gu, ' ').trim());
+        const texts = await getHistoryTimelineTexts(page, 1);
 
         function idx(regex: RegExp) {
           return texts.findIndex(text => regex.test(text));
@@ -2123,11 +2162,7 @@ test.describe('Draft Lifecycle', () => {
       });
 
       test('orders lottery and faculty round events correctly', async ({ page }) => {
-        await page.goto('/history/1/');
-
-        const rows = page.locator('section > ol.border-s > li.ms-6 ol.space-y-1 > li');
-        const textContents = await rows.allTextContents();
-        const texts = textContents.map(text => text.replaceAll(/\s+/gu, ' ').trim());
+        const texts = await getHistoryTimelineTexts(page, 1);
 
         function idx(regex: RegExp) {
           return texts.findIndex(text => regex.test(text));
@@ -2145,11 +2180,7 @@ test.describe('Draft Lifecycle', () => {
       });
 
       test('distinguishes intervention picks from lottery picks', async ({ page }) => {
-        await page.goto('/history/1/');
-
-        const rows = page.locator('section > ol.border-s > li.ms-6 ol.space-y-1 > li');
-        const textContents = await rows.allTextContents();
-        const texts = textContents.map(text => text.replaceAll(/\s+/gu, ' ').trim());
+        const texts = await getHistoryTimelineTexts(page, 1);
 
         function idx(regex: RegExp) {
           return texts.findIndex(text => regex.test(text));
@@ -2166,11 +2197,7 @@ test.describe('Draft Lifecycle', () => {
       test('shows intervention and lottery events only for labs with actual assignments', async ({
         page,
       }) => {
-        await page.goto('/history/1/');
-
-        const rows = page.locator('section > ol.border-s > li.ms-6 ol.space-y-1 > li');
-        const textContents = await rows.allTextContents();
-        const texts = textContents.map(text => text.replaceAll(/\s+/gu, ' ').trim());
+        const texts = await getHistoryTimelineTexts(page, 1);
 
         const interventionEntries = texts.filter(text =>
           /manual lottery intervention/iu.test(text),
@@ -2187,11 +2214,7 @@ test.describe('Draft Lifecycle', () => {
       });
 
       test('keeps internal events between finalized and created boundaries', async ({ page }) => {
-        await page.goto('/history/1/');
-
-        const rows = page.locator('section > ol.border-s > li.ms-6 ol.space-y-1 > li');
-        const textContents = await rows.allTextContents();
-        const texts = textContents.map(text => text.replaceAll(/\s+/gu, ' ').trim());
+        const texts = await getHistoryTimelineTexts(page, 1);
 
         function idx(regex: RegExp) {
           return texts.findIndex(text => regex.test(text));
@@ -2207,15 +2230,35 @@ test.describe('Draft Lifecycle', () => {
         expect(internalEventIndex).toBeLessThan(createdIndex);
       });
 
-      test('includes system skip entries', async ({ page }) => {
-        await page.goto('/history/1/');
+      test('includes the full auto-acknowledged skip set', async ({ page }) => {
+        const texts = await getHistoryTimelineTexts(page, 1);
+        const skipEntries = texts.filter(text => /system has skipped/iu.test(text));
 
-        const rows = page.locator('section > ol.border-s > li.ms-6 ol.space-y-1 > li');
-        const textContents = await rows.allTextContents();
-        const texts = textContents.map(text => text.replaceAll(/\s+/gu, ' ').trim());
-        const firstSkip = texts.findIndex(text => /system has skipped/isu.test(text));
-
-        expect(firstSkip).toBeGreaterThanOrEqual(0);
+        expect(skipEntries).toHaveLength(7);
+        expect(
+          skipEntries.some(text => /system has skipped the CVMIL for the 1st round/iu.test(text)),
+        ).toBe(true);
+        expect(
+          skipEntries.some(text => /system has skipped the NDSL for the 2nd round/iu.test(text)),
+        ).toBe(true);
+        expect(
+          skipEntries.some(text => /system has skipped the SCL for the 2nd round/iu.test(text)),
+        ).toBe(true);
+        expect(
+          skipEntries.some(text => /system has skipped the ACL for the 2nd round/iu.test(text)),
+        ).toBe(true);
+        expect(
+          skipEntries.some(text => /system has skipped the CSL for the 3rd round/iu.test(text)),
+        ).toBe(true);
+        expect(
+          skipEntries.some(text => /system has skipped the SCL for the 3rd round/iu.test(text)),
+        ).toBe(true);
+        expect(
+          skipEntries.some(text => /system has skipped the CVMIL for the 3rd round/iu.test(text)),
+        ).toBe(true);
+        expect(
+          skipEntries.some(text => /system has skipped the NDSL for the 1st round/iu.test(text)),
+        ).toBe(false);
       });
     });
   });
