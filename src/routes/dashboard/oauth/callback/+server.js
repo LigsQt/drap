@@ -7,6 +7,7 @@ import { error, redirect } from '@sveltejs/kit';
 import { parse } from 'valibot';
 
 import * as GOOGLE from '$lib/server/env/google';
+import { ASSERT_DOMAIN } from '$lib/server/env/drap/assert-domain';
 import { AuthorizationCode, IdToken, TokenResponse } from '$lib/server/models/oauth';
 import { db } from '$lib/server/database';
 import { ENCRYPTION_KEY } from '$lib/server/env/drap/crypto';
@@ -85,28 +86,28 @@ export async function GET({ fetch, cookies, setHeaders, url: { searchParams } })
         error(500, 'Email not verified.');
       }
 
-      // Validate UP email address
       const email = addresses.parseOneAddress(token.email);
       if (email === null) {
         logger.fatal('invalid email address from Google');
         error(500, 'Invalid email address provided by Google.');
       }
 
-      switch (email.type) {
-        case 'mailbox':
-          if (email.domain !== 'up.edu.ph') {
-            logger.fatal('email address from external organization detected', void 0, {
+      if (typeof ASSERT_DOMAIN !== 'undefined')
+        switch (email.type) {
+          case 'mailbox':
+            if (email.domain !== ASSERT_DOMAIN) {
+              logger.fatal('email address from external organization detected', void 0, {
+                'google.email': token.email,
+              });
+              error(500, `Email address must be from ${ASSERT_DOMAIN}.`);
+            }
+            break;
+          default:
+            logger.fatal('invalid email address type from Google', void 0, {
               'google.email': token.email,
             });
-            error(500, 'Email address is not a UP email address.');
-          }
-          break;
-        default:
-          logger.fatal('invalid email address type from Google', void 0, {
-            'google.email': token.email,
-          });
-          error(500, 'Invalid email address type provided by Google.');
-      }
+            error(500, 'Invalid email address type provided by Google.');
+        }
 
       // Validate nonce against the cookie
       const cookieNonce = Buffer.from(nonceCookie, 'base64url');
