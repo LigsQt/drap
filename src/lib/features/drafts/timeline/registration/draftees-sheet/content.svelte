@@ -36,7 +36,7 @@
 {#if students.length > 0}
   <DrafteesSheetTable {students} />
 {:else}
-  <Empty class="min-h-40 grow">
+  <Empty>
     {#snippet icon()}
       <UsersIcon class="size-5" />
     {/snippet}

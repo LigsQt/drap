@@ -30,8 +30,8 @@
       </Button>
     {/snippet}
   </Drawer.Trigger>
-  <Drawer.Content class="h-dvh max-h-dvh overflow-hidden">
-    <div class="min-h-0 flex-1 overflow-y-auto px-8 pb-40">
+  <Drawer.Content class="flex min-h-screen flex-col gap-4 overflow-hidden p-4">
+    <div class="flex min-h-0 grow flex-col">
       <Loader {...props} />
     </div>
   </Drawer.Content>
