@@ -4,13 +4,15 @@
   import { tv, type VariantProps } from 'tailwind-variants';
 
   import * as Empty from '$lib/components/ui/empty';
+  import { cn } from '$lib/components/ui/utils';
 
   const emptyWrapperMediaVariants = tv({
     base: 'flex shrink-0 items-center justify-center',
     variants: {
       size: {
         sm: 'size-10 rounded-lg',
-        lg: 'size-14 rounded-lg',
+        md: 'size-14 rounded-lg',
+        lg: 'size-20 rounded-xl',
       },
       variant: {
         default: 'border border-border bg-muted text-foreground',
@@ -30,7 +32,8 @@
     variants: {
       size: {
         sm: 'size-6',
-        lg: 'size-8',
+        md: 'size-8',
+        lg: 'size-12',
       },
     },
   });
@@ -72,7 +75,8 @@
   interface EmptyMediaProps {
     icon: LucideIcon;
     size: EmptySizeVariant;
-    class?: string;
+    mediaClass?: string;
+    iconClass?: string;
   }
 
   interface Props {
@@ -100,10 +104,12 @@
       class={emptyWrapperMediaVariants({
         variant,
         size: media.size,
-        class: media.class,
+        class: media.mediaClass,
       })}
     >
-      <media.icon class={emptyWrapperMediaIconVariants({ size: media.size })} />
+      <media.icon
+        class={cn(emptyWrapperMediaIconVariants({ size: media.size }), media.iconClass)}
+      />
     </Empty.Media>
   {/if}
   <Empty.Header class="empty:hidden">

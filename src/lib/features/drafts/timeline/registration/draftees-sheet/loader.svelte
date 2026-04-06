@@ -21,9 +21,9 @@
 </script>
 
 {#if drafteesQuery.isPending || lateQuery.isPending}
-  <Empty media={{ icon: Loader2Icon, size: 'sm' }}>
+  <Empty media={{ icon: Loader2Icon, size: 'sm', iconClass: 'animate-spin' }}>
     {#snippet title()}Loading Draftees{/snippet}
-    {#snippet description()}Fetching registered and late draftees.{/snippet}
+    {#snippet description()}Fetching registered and late draftees...{/snippet}
   </Empty>
 {:else if drafteesQuery.isError || lateQuery.isError}
   <Empty variant="destructive" media={{ icon: UsersIcon, size: 'sm' }}>

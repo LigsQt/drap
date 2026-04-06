@@ -11,9 +11,10 @@
 </script>
 
 {#if query.isPending}
-  <div class="flex h-full items-center justify-center">
-    <Loader2Icon class="size-20 animate-spin" />
-  </div>
+  <Empty media={{ icon: Loader2Icon, size: 'lg', iconClass: 'animate-spin' }}>
+    {#snippet title()}Loading Logs{/snippet}
+    {#snippet description()}Fetching system logs...{/snippet}
+  </Empty>
 {:else if query.isError}
   <Empty variant="destructive">
     {#snippet title()}Unable to Load Data{/snippet}

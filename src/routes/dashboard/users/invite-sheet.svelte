@@ -55,9 +55,9 @@
       </div>
       <div class="flex min-h-0 grow flex-col gap-4 overflow-y-auto">
         {#if query.isPending}
-          <Empty media={{ icon: Loader2Icon, size: 'sm' }}>
+          <Empty media={{ icon: Loader2Icon, size: 'sm', iconClass: 'animate-spin' }}>
             {#snippet title()}Loading Invitations{/snippet}
-            {#snippet description()}Fetching pending invitations.{/snippet}
+            {#snippet description()}Fetching pending invitations...{/snippet}
           </Empty>
         {:else if query.isError}
           <Empty variant="destructive" media={{ icon: UsersIcon, size: 'sm' }}>

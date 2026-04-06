@@ -18,9 +18,10 @@
 </script>
 
 {#if query.isPending}
-  <div class="flex h-full items-center justify-center py-12">
-    <Loader2Icon class="size-20 animate-spin" />
-  </div>
+  <Empty media={{ icon: Loader2Icon, size: 'lg', iconClass: 'animate-spin' }}>
+    {#snippet title()}Loading Allowlist{/snippet}
+    {#snippet description()}Fetching allowlist data...{/snippet}
+  </Empty>
 {:else if query.isError}
   <Empty variant="destructive">
     {#snippet title()}Unable to Load Data{/snippet}
