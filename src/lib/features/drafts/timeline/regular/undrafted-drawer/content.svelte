@@ -11,8 +11,8 @@
 <script lang="ts">
   import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 
-  import { Button } from '$lib/components/ui/button';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
+  import { Button } from '$lib/components/ui/button';
 
   import UndraftedStudentSection from './student-section.svelte';
 
@@ -29,8 +29,7 @@
       case 1: {
         const [labId] = selectedLabIds;
         if (typeof labId === 'undefined') return 'Select Labs';
-        const selectedLab = labs.find(lab => lab.id === labId);
-        return selectedLab?.name ?? labId.toUpperCase();
+        return labId.toUpperCase();
       }
       default:
         return `${selectedLabIds.length} labs selected.`;
@@ -88,9 +87,8 @@
           }}
         >
           {#each labs as lab (lab.id)}
-            <DropdownMenu.CheckboxItem value={lab.id}>
-              <span class="uppercase">{lab.id}</span>
-              <span class="ml-auto text-xs text-muted-foreground">{lab.name}</span>
+            <DropdownMenu.CheckboxItem value={lab.id} class="uppercase">
+              {lab.id}
             </DropdownMenu.CheckboxItem>
           {/each}
         </DropdownMenu.CheckboxGroup>

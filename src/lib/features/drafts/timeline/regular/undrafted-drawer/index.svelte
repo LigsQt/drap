@@ -1,4 +1,6 @@
 <script lang="ts">
+  import GraduationCapIcon from '@lucide/svelte/icons/graduation-cap';
+
   import * as Drawer from '$lib/components/ui/drawer';
   import { Button } from '$lib/components/ui/button';
   import type { Lab } from '$lib/features/drafts/types';
@@ -17,7 +19,10 @@
 <Drawer.Root direction="bottom">
   <Drawer.Trigger>
     {#snippet child({ props })}
-      <Button variant="outline" size="sm" {...props}>View Undrafted</Button>
+      <Button variant="outline" size="sm" {...props}>
+        <GraduationCapIcon class="size-4" />
+        <span>View Undrafted</span>
+      </Button>
     {/snippet}
   </Drawer.Trigger>
   <Drawer.Content class="flex min-h-dvh flex-col gap-4 overflow-hidden p-4 md:min-h-[50vh]">
