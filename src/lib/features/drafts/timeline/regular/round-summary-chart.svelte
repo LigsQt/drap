@@ -40,7 +40,7 @@
 
   function chartColor(i: number) {
     const color = COLORS[i % COLORS.length];
-    assert(typeof color === 'string', 'chart color index out of bounds');
+    assert(typeof color !== 'undefined', 'chart color index out of bounds');
     return color;
   }
 

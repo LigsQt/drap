@@ -28,14 +28,19 @@
   const selectedLabSet = $derived(new Set(selectedLabIds));
 
   const selectedLabLabel = $derived.by(() => {
-    if (selectedLabIds.length === 0) return 'Select labs';
-    if (selectedLabIds.length === 1) {
-      const [labId] = selectedLabIds;
-      if (typeof labId !== 'string') return 'Select labs';
-      const selectedLab = labs.find(lab => lab.id === labId);
-      return selectedLab?.name ?? labId.toUpperCase();
+    switch (selectedLabIds.length) {
+      case 0:
+        return 'Select Labs';
+      case 1: {
+        const [labId] = selectedLabIds;
+        if (typeof labId === 'undefined') return 'Select Labs';
+        const selectedLab = labs.find(lab => lab.id === labId);
+        return selectedLab?.name ?? labId.toUpperCase();
+      }
+      default: {
+        return `${selectedLabIds.length} labs selected.`;
+      }
     }
-    return `${selectedLabIds.length} labs selected`;
   });
 
   const preferredStudents = $derived.by(() => {
@@ -86,7 +91,6 @@
         <p class="text-sm text-muted-foreground">Current round: {round}</p>
       </div>
     </Drawer.Header>
-
     <div class="shrink-0">
       <DropdownMenu.Root>
         <DropdownMenu.Trigger>
@@ -123,7 +127,6 @@
         </DropdownMenu.Content>
       </DropdownMenu.Root>
     </div>
-
     {#if query.isPending}
       <Empty media={{ icon: Loader2Icon, size: 'lg', iconClass: 'animate-spin' }}>
         {#snippet title()}Loading Draftees{/snippet}
@@ -172,7 +175,6 @@
               {/if}
             </div>
           </section>
-
           <section class="space-y-2">
             <h4 class="text-lg font-semibold">Interested</h4>
             <p class="text-sm text-muted-foreground">Selected in future rounds</p>

@@ -38,7 +38,6 @@
       <UndraftedDrawer {draftId} {round} {labs} />
     </div>
   {/if}
-
   <div class="flex justify-around sm:justify-normal">
     <Tabs.List class="grid h-full w-full grid-cols-2">
       <Tabs.Trigger value="summary">
