@@ -24,7 +24,9 @@
     'var(--chart-5)',
   ] as const;
 
-  const chartMax = $derived(Math.max(chart.allLabs.assignedMax, 1));
+  const chartMax = $derived(
+    Math.max(...chart.allLabs.assignedByPhase.slice(0, displayedRounds), 1),
+  );
 
   const yTicks = $derived.by(() => {
     const step = Math.max(1, tickStep(0, chartMax, 4));
