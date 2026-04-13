@@ -54,7 +54,7 @@ services:
       RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:?required}
       RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:?required}
 
-  bucket:
+  setup-bucket:
     environment:
       MC_HOST_drap: http://${RUSTFS_ACCESS_KEY:?required}:${RUSTFS_SECRET_KEY:?required}@rustfs:9000
 

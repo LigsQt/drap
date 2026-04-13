@@ -82,8 +82,10 @@ services:
       retries: 3
       start_period: 40s
 
-  bucket:
+  setup-bucket:
     image: minio/mc:RELEASE.2025-08-13T08-35-41Z
+    profiles:
+      - setup
     depends_on:
       rustfs:
         condition: service_healthy

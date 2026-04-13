@@ -118,6 +118,8 @@ For `pnpm docker:prod:app`, Compose derives the canonical origin from `SCHEME` a
 
 `pnpm docker:prod:app` already injects `POSTGRES_URL`, `DRAP_ASSERT_DOMAIN`, `DRAP_ENABLE_EMAILS`, `INNGEST_BASE_URL`, `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_PROTOCOL`, `ADDRESS_HEADER`, and `XFF_DEPTH` internally.
 
+One-shot setup services live behind the Compose `setup` profile so they do not interfere with `docker compose up --wait`. Use `setup-bucket` to bootstrap the RustFS bucket and `setup-database` to run Drizzle migrations after the long-running services are healthy.
+
 When `SCHEME=https`, [`compose.prod.app.tls.yaml`](/X:/projects/drap/compose.prod.app.tls.yaml) expects a repo-root [`certificate.pem`](/X:/projects/drap/certificate.pem). A symlink is acceptable. The TLS override exposes it to HAProxy as a Docker secret mounted at `/run/secrets/certificate.pem`, and HAProxy will fail to start if the file is missing or malformed. HAProxy's static config files are baked into the image at build time, so changes to [`docker/haproxy/haproxy.cfg`](/X:/projects/drap/docker/haproxy/haproxy.cfg) or [`docker/haproxy/allowed-paths.lst`](/X:/projects/drap/docker/haproxy/allowed-paths.lst) require rebuilding the HAProxy image.
 
 </details>
@@ -216,8 +218,10 @@ flowchart TD
 | -------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | `pnpm docker:dev`          | `compose.yaml` + `compose.dev.yaml`                                                          | base services plus dev overrides, including `o2` and `rustfs`                         |
 | `pnpm docker:dev:ci`       | `compose.yaml` + `compose.dev.yaml` + `compose.dev.ci.yaml`                                  | dev-style backing services with CI Inngest SDK URL override, excluding `o2` via reset |
+| `pnpm docker:dev:setup`    | `compose.yaml` + `compose.dev.yaml` + `setup` profile                                        | all one-shot setup services for the dev stack                                         |
 | `pnpm docker:prod`         | `compose.yaml` + `compose.prod.yaml`                                                         | `postgres` (prod), `inngest` (prod), `redis`, `o2`, `rustfs`, `drizzle-gateway`       |
-| `pnpm docker:prod:app`     | `compose.yaml` + `compose.prod.yaml` + `compose.prod.app.yaml`                               | prod services + `haproxy` ingress + `app` + `migrate`                                 |
+| `pnpm docker:prod:setup`   | `compose.yaml` + `compose.prod.yaml` + `compose.prod.app.yaml` + `setup` profile             | all one-shot setup services for the production app stack                              |
+| `pnpm docker:prod:app`     | `compose.yaml` + `compose.prod.yaml` + `compose.prod.app.yaml`                               | prod services + `haproxy` ingress + `app`                                             |
 | `pnpm docker:prod:app:tls` | `compose.yaml` + `compose.prod.yaml` + `compose.prod.app.yaml` + `compose.prod.app.tls.yaml` | app stack + TLS ingress override on port `443`                                        |
 
 > [!NOTE]
@@ -229,8 +233,12 @@ flowchart TD
 
 ```bash
 # Run dev services (compose.yaml + compose.dev.yaml):
-# postgres, inngest (dev mode), o2, rustfs, bucket bootstrap
+# postgres, inngest (dev mode), o2, rustfs
 pnpm docker:dev
+
+# Run all one-shot setup services after the stack is healthy.
+# Only needs to be done once per stack.
+pnpm docker:dev:setup
 
 # Run the Vite dev server for SvelteKit.
 pnpm dev
@@ -251,13 +259,17 @@ node --env-file=.env build/index.js
 
 ```bash
 # Or, spin up production internal services (compose.yaml + compose.prod.yaml):
-# postgres (prod), inngest (prod mode), redis, o2, rustfs, bucket bootstrap, drizzle-gateway
+# postgres (prod), inngest (prod mode), redis, o2, rustfs, drizzle-gateway
 pnpm docker:prod
+
+# Run all one-shot setup services after the stack is healthy.
+# Should be run once per redeployment.
+pnpm docker:prod:setup
 ```
 
 ```bash
 # Or, spin up full production environment (+ compose.prod.app.yaml):
-# prod services + HAProxy ingress + app + migrate
+# prod services + HAProxy ingress + app
 # SCHEME=http uses port 80 only
 pnpm docker:prod:app
 ```

@@ -32,11 +32,13 @@ services:
     networks:
       - durability
 
-  migrate:
+  setup-database:
     pull_policy: build
     build:
       context: .
       target: migrate
+    profiles:
+      - setup
     environment:
       POSTGRES_URL: postgresql://postgres:${POSTGRES_PASSWORD:?required}@postgres:5432/postgres
     volumes:

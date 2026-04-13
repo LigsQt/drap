@@ -26,6 +26,6 @@ services:
       RUSTFS_ACCESS_KEY: drap
       RUSTFS_SECRET_KEY: password
 
-  bucket:
+  setup-bucket:
     environment:
       MC_HOST_drap: http://drap:password@rustfs:9000
