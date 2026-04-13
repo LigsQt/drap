@@ -76,7 +76,7 @@ Development and production do not use the same environment-variable surface. The
 <details>
 <summary><strong>Development</strong></summary>
 
-For host-run app processes, `pnpm docker:dev` already starts PostgreSQL, Inngest, and OpenObserve with local-friendly defaults. You still need to export the app-facing variables below yourself.
+For host-run app processes, `pnpm docker:dev` already starts PostgreSQL, Inngest, OpenObserve, and RustFS with local-friendly defaults. You still need to export the app-facing variables below yourself.
 
 | **Variable**                  | **Used by**                                 | **Required** | **Recommended**                                                                                           |
 | ----------------------------- | ------------------------------------------- | ------------ | --------------------------------------------------------------------------------------------------------- |
@@ -109,6 +109,8 @@ For `pnpm docker:prod:app`, Compose derives the canonical origin from `SCHEME` a
 | `GOOGLE_OAUTH_CLIENT_SECRET` | Google OAuth login.                         | Yes          | Value from the [Google Cloud Console].                       |
 | `INNGEST_EVENT_KEY`          | Inngest event signing.                      | Yes          | Production event key from Inngest.                           |
 | `INNGEST_SIGNING_KEY`        | Inngest webhook signing.                    | Yes          | Production signing key from Inngest.                         |
+| `RUSTFS_ACCESS_KEY`          | RustFS root access key.                     | Yes          | Generate with `pnpm random:bytes -- 24`.                     |
+| `RUSTFS_SECRET_KEY`          | RustFS root secret key.                     | Yes          | Generate with `pnpm random:bytes -- 48`.                     |
 | `OTEL_EXPORTER_OTLP_HEADERS` | OpenTelemetry auth headers.                 | Yes          | Percent-encoded Basic auth for your OpenObserve credentials. |
 | `ZO_ROOT_USER_EMAIL`         | OpenObserve bootstrap admin user.           | Yes          | Dedicated admin email address.                               |
 | `ZO_ROOT_USER_PASSWORD`      | OpenObserve bootstrap admin password.       | Yes          | Use a strong random secret.                                  |
@@ -227,7 +229,7 @@ flowchart TD
 
 ```bash
 # Run dev services (compose.yaml + compose.dev.yaml):
-# postgres, inngest (dev mode), o2, rustfs
+# postgres, inngest (dev mode), o2, rustfs, bucket bootstrap
 pnpm docker:dev
 
 # Run the Vite dev server for SvelteKit.
@@ -249,7 +251,7 @@ node --env-file=.env build/index.js
 
 ```bash
 # Or, spin up production internal services (compose.yaml + compose.prod.yaml):
-# postgres (prod), inngest (prod mode), redis, o2, rustfs, drizzle-gateway
+# postgres (prod), inngest (prod mode), redis, o2, rustfs, bucket bootstrap, drizzle-gateway
 pnpm docker:prod
 ```
 

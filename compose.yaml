@@ -82,6 +82,20 @@ services:
       retries: 3
       start_period: 40s
 
+  bucket:
+    image: minio/mc:RELEASE.2025-08-13T08-35-41Z
+    depends_on:
+      rustfs:
+        condition: service_healthy
+        required: true
+    command:
+      - mb
+      - --ignore-existing
+      - drap/avatars
+    networks:
+      - storage
+    restart: 'no'
+
 volumes:
   open-observe:
   postgres:
