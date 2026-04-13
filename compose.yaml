@@ -27,6 +27,12 @@ services:
     ports:
       - 8288:8288
     restart: always
+    healthcheck:
+      test: ['CMD', 'curl', '--fail', 'http://localhost:8288/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   o2:
     pull_policy: build
