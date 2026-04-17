@@ -73,10 +73,10 @@
 
   function buildWideData(series: DraftStatsSeries[], years: number[]) {
     return years.map((year, i) => {
-      const point: Record<string, number | string> = { year };
+      const point: Record<string, number | string | null> = { year };
       for (const s of series) {
         const p = s.points[i];
-        point[s.labId] = p?.value ?? 0;
+        point[s.labId] = p?.value ?? null;
       }
       return point;
     });
