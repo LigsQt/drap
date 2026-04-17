@@ -1,17 +1,17 @@
 <script lang="ts">
   import { AreaChart } from 'layerchart';
   import { cubicOut } from 'svelte/easing';
-  import { tickStep } from 'd3-array';
   import { format } from 'd3-format';
   import type { MotionOptions } from 'layerchart/utils/motion.svelte';
   import { prefersReducedMotion } from 'svelte/motion';
   import { scalePoint } from 'd3-scale';
+  import { tickStep } from 'd3-array';
 
   import * as Card from '$lib/components/ui/card';
   import * as Chart from '$lib/components/ui/chart';
   import * as NativeSelect from '$lib/components/ui/native-select';
-  import { Skeleton } from '$lib/components/ui/skeleton';
   import type { DraftStatsChartData, DraftStatsSeries } from '$lib/features/drafts/types';
+  import { Skeleton } from '$lib/components/ui/skeleton';
 
   interface Props {
     stats: Promise<DraftStatsChartData | null>;
@@ -77,43 +77,43 @@
 
   const quotaConfig = $derived(() => {
     const config: Record<string, { label: string; color: string }> = {};
-    for (const series of quotaFilteredSeries) {
+    for (const series of quotaFilteredSeries) 
       config[series.labId] = { label: series.labName, color: series.color };
-    }
+    
     return config;
   });
 
   const draftedConfig = $derived(() => {
     const config: Record<string, { label: string; color: string }> = {};
-    for (const series of draftedFilteredSeries) {
+    for (const series of draftedFilteredSeries) 
       config[series.labId] = { label: series.labName, color: series.color };
-    }
+    
     return config;
   });
 
   const quotaMax = $derived.by(() => {
     let max = 0;
-    for (const point of quotaChartData) {
+    for (const point of quotaChartData) 
       for (const series of quotaFilteredSeries) {
         const val = point[series.labId];
         if (typeof val === 'number' && val > max) max = val;
       }
-    }
+    
     return Math.max(max, 1);
   });
 
   const draftedMax = $derived.by(() => {
     let max = 0;
-    for (const point of draftedChartData) {
+    for (const point of draftedChartData) 
       for (const series of draftedFilteredSeries) {
         const val = point[series.labId];
         if (typeof val === 'number' && val > max) max = val;
       }
-    }
+    
     return Math.max(max, 1);
   });
 
-  const yTicksFn = (max: number) => {
+  function yTicksFn(max: number) {
     const step = Math.max(1, tickStep(0, max, 4));
     const ticks = Array.from({ length: Math.floor(max / step) + 1 }, (_, i) => i * step);
     if (ticks.at(-1) !== max) ticks.push(max);

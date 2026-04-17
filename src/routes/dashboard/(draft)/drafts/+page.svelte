@@ -1,5 +1,6 @@
 <script lang="ts">
   import { DraftTable, InitDialog, StatsChart } from '$lib/features/drafts';
+
   import { buildDraftStatsChartData } from './stats';
 
   const { data } = $props();

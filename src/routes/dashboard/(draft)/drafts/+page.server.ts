@@ -1,19 +1,14 @@
 import * as v from 'valibot';
 import { decode } from 'decode-formdata';
 import { error, redirect } from '@sveltejs/kit';
-import { isNull, sql } from 'drizzle-orm';
 import { index } from 'd3-array';
+import { isNull, sql } from 'drizzle-orm';
 
 import * as schema from '$lib/server/database/schema';
 import { assertSingle } from '$lib/server/assert';
 import { coerceDate } from '$lib/coerce';
 import { db } from '$lib/server/database';
-import {
-  type DbConnection,
-  type DrizzleTransaction,
-  getDrafts,
-  getLabRegistry,
-} from '$lib/server/database/drizzle';
+import { type DbConnection, type DrizzleTransaction, getDrafts, getLabRegistry } from '$lib/server/database/drizzle';
 import { Logger } from '$lib/server/telemetry/logger';
 import { Tracer } from '$lib/server/telemetry/tracer';
 
@@ -227,10 +222,10 @@ async function getDraftStatsAggregates(db: DbConnection) {
         const draftId = draft.draftId.toString();
         for (const [key, quotaData] of quotaByDraftLab) {
           if (!key.startsWith(`${draftId}-`)) continue;
-          const labId = quotaData.labId;
+          const {labId} = quotaData;
           const draftedData = draftedByDraftLab.get(`${draftId}-${labId}`);
 
-          if (!labsMap.has(labId)) {
+          if (!labsMap.has(labId)) 
             labsMap.set(labId, {
               labId,
               labName: quotaData.labName,
@@ -239,7 +234,7 @@ async function getDraftStatsAggregates(db: DbConnection) {
               quota: 0,
               draftedStudents: 0,
             });
-          }
+          
 
           const lab = labsMap.get(labId)!;
           lab.quota += quotaData.quota;

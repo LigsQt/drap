@@ -1,4 +1,5 @@
 import { index } from 'd3-array';
+
 import { CHART_COLORS } from '$lib/constants';
 import type { DraftStatsChartData, DraftStatsSeries, DraftStatsYear } from '$lib/features/drafts/types';
 
@@ -9,7 +10,7 @@ export function buildDraftStatsChartData(
   const years = [...new Set(stats.map(s => s.year))].sort();
   const statsByYear = index(stats, s => s.year);
 
-  const buildSeries = (metric: 'quota' | 'draftedStudents'): DraftStatsSeries[] => {
+  function buildSeries(metric: 'quota' | 'draftedStudents'): DraftStatsSeries[] {
     return labs.map((lab, i) => {
       const points = years.map(year => {
         const yearStat = statsByYear.get(year);
