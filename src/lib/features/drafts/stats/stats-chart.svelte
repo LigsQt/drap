@@ -94,7 +94,6 @@
   }
 
   function chartMax(
-    chartData: DraftStatsChartData | null,
     series: DraftStatsSeries[],
     data: ReturnType<typeof quotaChartData>,
   ) {
@@ -138,7 +137,7 @@
     {:then chartData}
       {@const series = quotaSeries(chartData)}
       {@const data = quotaChartData(chartData)}
-      {@const max = chartMax(chartData, series, data)}
+      {@const max = chartMax(series, data)}
       {@const chartLabs = chartData
         ? [
             ...new Map(
@@ -227,7 +226,7 @@
     {:then chartData}
       {@const series = draftedSeries(chartData)}
       {@const data = draftedChartData(chartData)}
-      {@const max = chartMax(chartData, series, data)}
+      {@const max = chartMax(series, data)}
       {@const chartLabs = chartData
         ? [
             ...new Map(
