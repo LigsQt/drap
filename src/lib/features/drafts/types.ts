@@ -163,7 +163,6 @@ export interface DraftStatsSeries {
 
 export interface DraftStatsChartData {
   years: number[];
-  series: DraftStatsSeries[];
   quotaSeries: DraftStatsSeries[];
   draftedSeries: DraftStatsSeries[];
 }

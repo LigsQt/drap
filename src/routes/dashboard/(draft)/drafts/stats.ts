@@ -49,7 +49,6 @@ export function buildDraftStatsChartData(stats: DraftStatsYear[]): DraftStatsCha
 
   return {
     years,
-    series: buildSeries('quota'),
     quotaSeries: buildSeries('quota'),
     draftedSeries: buildSeries('draftedStudents'),
   };
