@@ -172,7 +172,7 @@
           yDomain={[0, quotaMax]}
           props={{
             area: { fillOpacity: 0.15, motion: chartMotion },
-            points: { r: 4, class: 'fill-current' },
+            points: { r: 4 },
             tooltip: { context: { mode: 'band' } },
             xAxis: { grid: false, format: yearFormat, motion: axisMotion, tickLabelProps: { dy: 8 } },
             yAxis: { ticks: yTicksFn(quotaMax), format: integerFormat, motion: axisMotion, tickLabelProps: { dx: -8 } },
@@ -227,7 +227,7 @@
           yDomain={[0, draftedMax]}
           props={{
             area: { fillOpacity: 0.15, motion: chartMotion },
-            points: { r: 4, class: 'fill-current' },
+            points: { r: 4 },
             tooltip: { context: { mode: 'band' } },
             xAxis: { grid: false, format: yearFormat, motion: axisMotion, tickLabelProps: { dy: 8 } },
             yAxis: { ticks: yTicksFn(draftedMax), format: integerFormat, motion: axisMotion, tickLabelProps: { dx: -8 } },
