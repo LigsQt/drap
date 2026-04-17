@@ -197,7 +197,7 @@ export async function load({ locals: { session } }) {
 }
 
 export const actions = {
-  async submit({ locals: { session }, request }) {
+  async submit({ locals: { session }, request, fetch }) {
     if (typeof session?.user === 'undefined') {
       logger.fatal('attempt to submit lab rankings without session');
       error(401);
@@ -225,7 +225,8 @@ export const actions = {
         draft: draftIdField,
         labs,
         remarks,
-      } = v.parse(SubmitFormData, decode(data, { arrays: ['labs', 'remarks'] }));
+        avatar = null,
+      } = v.parse(SubmitFormData, decode(data, { arrays: ['labs', 'remarks'], files: ['avatar'] }));
 
       logger.debug('lab rankings submitted', {
         'draft.id': draftIdField,
@@ -304,7 +305,23 @@ export const actions = {
             error(400);
           }
 
-          await insertStudentRanking(db, draftId, user.id, labs, remarks);
+          if (avatar === null) {
+            logger.warn('user explicitly opted out of avatar');
+            await insertStudentRanking(db, draftId, user.id);
+          } else {
+            const objectKey = await insertStudentRankingWithAvatar(db, draftId, user.id);
+            if (typeof avatar === 'string') {
+              logger.info('user explicitly opted in for default Google avatar');
+              assert(avatar === '', 'unexpected avatar payload string value');
+              assert(user.avatarUrl.length > 0, 'missing google avatar URL');
+              await uploadDraftAvatarFromGoogleProfile(objectKey, user.avatarUrl, fetch);
+            } else {
+              logger.info('user explicitly opted in for custom avatar');
+              await uploadDraftAvatarOverride(objectKey, avatar);
+            }
+          }
+
+          await insertStudentRankingLabs(db, draftId, user.id, labs, remarks);
         },
         { isolationLevel: 'read committed' },
       );
@@ -355,19 +372,48 @@ async function getDraftLabRegistry(db: DbConnection, draftId: bigint) {
   });
 }
 
-async function insertStudentRanking(
+async function insertStudentRanking(db: DbConnection, draftId: bigint, userId: string) {
+  return await tracer.asyncSpan('insert-student-ranking', async span => {
+    span.setAttributes({ 'database.draft.id': draftId.toString(), 'database.user.id': userId });
+    const { rowCount } = await db.insert(schema.studentRank).values({ draftId, userId });
+    switch (rowCount) {
+      case 0:
+        return false;
+      case 1:
+        return true;
+      default:
+        fail(`insertStudentRanking => unexpected insertion count ${rowCount}`);
+    }
+  });
+}
+
+async function insertStudentRankingWithAvatar(db: DbConnection, draftId: bigint, userId: string) {
+  return await tracer.asyncSpan('insert-student-ranking-with-avatar', async span => {
+    span.setAttributes({ 'database.draft.id': draftId.toString(), 'database.user.id': userId });
+    const { avatarObjectKey } = await db
+      .insert(schema.studentRank)
+      .values({ draftId, userId, avatarObjectKey: sql`gen_random_uuid()` })
+      .returning({ avatarObjectKey: schema.studentRank.avatarObjectKey })
+      .then(assertSingle);
+    assert(avatarObjectKey !== null, 'missing generated avatar object key');
+    return avatarObjectKey;
+  });
+}
+
+async function insertStudentRankingLabs(
   db: DrizzleTransaction,
   draftId: bigint,
   userId: string,
   labs: string[],
   remarks: string[],
 ) {
-  return await tracer.asyncSpan('insert-student-ranking', async span => {
-    span.setAttributes({ 'database.draft.id': draftId.toString(), 'database.user.id': userId });
-    await db
-      .insert(schema.studentRank)
-      .values({ draftId, userId, avatarObjectKey: null })
-      .onConflictDoNothing({ target: [schema.studentRank.draftId, schema.studentRank.userId] });
+  return await tracer.asyncSpan('insert-student-ranking-labs', async span => {
+    span.setAttributes({
+      'database.draft.id': draftId.toString(),
+      'database.user.id': userId,
+      'database.labs.count': labs.length,
+      'database.remarks.count': remarks.length,
+    });
     for (const [index, [labId, remark]] of enumerate(izip(labs, remarks)))
       await db
         .insert(schema.studentRankLab)
