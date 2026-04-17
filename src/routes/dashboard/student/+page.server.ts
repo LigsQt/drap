@@ -1,11 +1,13 @@
+import assert, { fail } from 'node:assert/strict';
+
 import * as v from 'valibot';
 import { and, asc, eq, isNotNull, lt, sql } from 'drizzle-orm';
 import { decode } from 'decode-formdata';
 import { enumerate, izip } from 'itertools';
-import { error, redirect } from '@sveltejs/kit';
+import { error, fail as actionFailure, redirect } from '@sveltejs/kit';
 
 import * as schema from '$lib/server/database/schema';
-import { assertOptional } from '$lib/server/assert';
+import { assertOptional, assertSingle } from '$lib/server/assert';
 import { coerceDate, coerceNullableDate } from '$lib/coerce';
 import { db } from '$lib/server/database';
 import {
@@ -16,12 +18,24 @@ import {
   getLabById,
 } from '$lib/server/database/drizzle';
 import { Logger } from '$lib/server/telemetry/logger';
+import {
+  S3ContentTypeError,
+  S3EmptyPayloadError,
+  S3RemoteHostError,
+  S3RemoteProtocolError,
+  S3TooLargePayloadError,
+} from '$lib/server/s3/util';
 import { Tracer } from '$lib/server/telemetry/tracer';
+import {
+  uploadDraftAvatarFromGoogleProfile,
+  uploadDraftAvatarOverride,
+} from '$lib/server/s3/draft-student-avatar';
 
 const SubmitFormData = v.object({
   draft: v.pipe(v.string(), v.minLength(1)),
   labs: v.array(v.pipe(v.string(), v.minLength(1))),
   remarks: v.array(v.string()),
+  avatar: v.nullish(v.union([v.string(), v.instance(File)])),
 });
 
 const SERVICE_NAME = 'routes.dashboard.student';
@@ -251,81 +265,109 @@ export const actions = {
         error(400);
       }
 
-      await db.transaction(
-        async db => {
-          const draft = await getDraftByIdForShare(db, draftId);
-          if (typeof draft === 'undefined') {
-            logger.fatal('cannot find the target draft');
-            error(404);
-          }
+      try {
+        await db.transaction(
+          async db => {
+            const draft = await getDraftByIdForShare(db, draftId);
+            if (typeof draft === 'undefined') {
+              logger.fatal('cannot find the target draft');
+              error(404);
+            }
 
-          const { currRound, maxRounds, registrationClosedAt, isRegistrationClosed } = draft;
-          logger.debug('max rounds for target draft determined', { 'draft.round.max': maxRounds });
-          if (currRound !== 0) {
-            logger.fatal('cannot submit rankings to an ongoing draft', void 0, {
-              'draft.round.current': currRound,
+            const { currRound, maxRounds, registrationClosedAt, isRegistrationClosed } = draft;
+            logger.debug('max rounds for target draft determined', {
               'draft.round.max': maxRounds,
             });
-            error(403);
-          }
-
-          if (isRegistrationClosed) {
-            const isInAllowlist = await isUserInAllowlist(db, draftId, user.id);
-            if (isInAllowlist) {
-              logger.warn(
-                'attempt to submit rankings after registration closed but student is in allowlist',
-              );
-            } else {
-              logger.fatal('attempt to submit rankings after registration closed', void 0, {
-                'draft.registration.closes_at': registrationClosedAt.toISOString(),
+            if (currRound !== 0) {
+              logger.fatal('cannot submit rankings to an ongoing draft', void 0, {
+                'draft.round.current': currRound,
+                'draft.round.max': maxRounds,
               });
               error(403);
             }
-          }
 
-          if (labs.length > maxRounds) {
-            logger.fatal('lab rankings exceed max round', void 0, {
-              'ranking.lab_count': labs.length,
-            });
-            error(400);
-          }
-
-          const snapshotLabIds = new Set(await getDraftLabQuotaLabIds(db, draftId));
-          const unknownLabIds = Array.from(uniqueLabIds).filter(
-            labId => !snapshotLabIds.has(labId),
-          );
-          if (unknownLabIds.length > 0) {
-            logger.fatal('submitted rankings with labs outside draft snapshot', void 0, {
-              'draft.id': draftId.toString(),
-              'ranking.lab_count': labs.length,
-              'ranking.snapshot_lab_count': snapshotLabIds.size,
-              'ranking.unknown_lab_count': unknownLabIds.length,
-              'ranking.unknown_lab_ids': unknownLabIds,
-            });
-            error(400);
-          }
-
-          if (avatar === null) {
-            logger.warn('user explicitly opted out of avatar');
-            await insertStudentRanking(db, draftId, user.id);
-          } else {
-            const objectKey = await insertStudentRankingWithAvatar(db, draftId, user.id);
-            if (typeof avatar === 'string') {
-              logger.info('user explicitly opted in for default Google avatar');
-              assert(avatar === '', 'unexpected avatar payload string value');
-              assert(user.avatarUrl.length > 0, 'missing google avatar URL');
-              await uploadDraftAvatarFromGoogleProfile(objectKey, user.avatarUrl, fetch);
-            } else {
-              logger.info('user explicitly opted in for custom avatar');
-              await uploadDraftAvatarOverride(objectKey, avatar);
+            if (isRegistrationClosed) {
+              const isInAllowlist = await isUserInAllowlist(db, draftId, user.id);
+              if (isInAllowlist) {
+                logger.warn(
+                  'attempt to submit rankings after registration closed but student is in allowlist',
+                );
+              } else {
+                logger.fatal('attempt to submit rankings after registration closed', void 0, {
+                  'draft.registration.closes_at': registrationClosedAt.toISOString(),
+                });
+                error(403);
+              }
             }
-          }
 
-          await insertStudentRankingLabs(db, draftId, user.id, labs, remarks);
-        },
-        { isolationLevel: 'read committed' },
-      );
-      logger.info('lab rankings inserted');
+            if (labs.length > maxRounds) {
+              logger.fatal('lab rankings exceed max round', void 0, {
+                'ranking.lab_count': labs.length,
+              });
+              error(400);
+            }
+
+            const snapshotLabIds = new Set(await getDraftLabQuotaLabIds(db, draftId));
+            const unknownLabIds = Array.from(uniqueLabIds).filter(
+              labId => !snapshotLabIds.has(labId),
+            );
+            if (unknownLabIds.length > 0) {
+              logger.fatal('submitted rankings with labs outside draft snapshot', void 0, {
+                'draft.id': draftId.toString(),
+                'ranking.lab_count': labs.length,
+                'ranking.snapshot_lab_count': snapshotLabIds.size,
+                'ranking.unknown_lab_count': unknownLabIds.length,
+                'ranking.unknown_lab_ids': unknownLabIds,
+              });
+              error(400);
+            }
+
+            if (avatar === null) {
+              logger.warn('user explicitly opted out of avatar');
+              await insertStudentRanking(db, draftId, user.id);
+            } else {
+              const objectKey = await insertStudentRankingWithAvatar(db, draftId, user.id);
+              if (typeof avatar === 'string') {
+                logger.info('user explicitly opted in for default Google avatar');
+                assert(avatar === '', 'unexpected avatar payload string value');
+                assert(user.avatarUrl.length > 0, 'missing google avatar URL');
+                await uploadDraftAvatarFromGoogleProfile(objectKey, user.avatarUrl, fetch);
+              } else {
+                logger.info('user explicitly opted in for custom avatar');
+                await uploadDraftAvatarOverride(objectKey, avatar);
+              }
+            }
+
+            await insertStudentRankingLabs(db, draftId, user.id, labs, remarks);
+          },
+          { isolationLevel: 'read committed' },
+        );
+      } catch (error) {
+        if (error instanceof S3ContentTypeError) {
+          logger.fatal(error.message, void 0, { 'avatar.content_type': error.contentType });
+          return actionFailure(415, { message: 'Avatar must be a JPEG, PNG, or WebP image.' });
+        } else if (error instanceof S3EmptyPayloadError) {
+          logger.fatal(error.message);
+          return actionFailure(400, { message: 'Avatar file is empty.' });
+        } else if (error instanceof S3TooLargePayloadError) {
+          logger.fatal(error.message, void 0, {
+            'avatar.actual_size': error.size,
+            'avatar.max_size': error.maxBytes,
+          });
+          return actionFailure(413, { message: 'Avatar file is too large.' });
+        } else if (error instanceof S3RemoteProtocolError) {
+          logger.fatal(error.message, void 0, { 'avatar.protocol': error.protocol });
+          return actionFailure(400, {
+            message: 'Your Google profile photo could not be fetched securely.',
+          });
+        } else if (error instanceof S3RemoteHostError) {
+          logger.fatal(error.message, void 0, { 'avatar.host': error.host });
+          return actionFailure(400, {
+            message: 'Your Google profile photo URL is not supported.',
+          });
+        }
+        throw error;
+      }
     });
   },
 };
