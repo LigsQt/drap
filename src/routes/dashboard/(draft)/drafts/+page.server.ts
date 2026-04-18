@@ -1,17 +1,16 @@
 import * as v from 'valibot';
+import { and, asc, count, eq, isNotNull, isNull, sql } from 'drizzle-orm';
 import { decode } from 'decode-formdata';
 import { error, redirect } from '@sveltejs/kit';
-import { isNull, sql } from 'drizzle-orm';
 
 import * as schema from '$lib/server/database/schema';
 import { assertSingle } from '$lib/server/assert';
-import { coerceDate } from '$lib/coerce';
+import { coerceDate, coerceNumber } from '$lib/coerce';
 import { db } from '$lib/server/database';
 import {
   type DbConnection,
   type DrizzleTransaction,
   getDrafts,
-  getLabRegistry,
 } from '$lib/server/database/drizzle';
 import { Logger } from '$lib/server/telemetry/logger';
 import { Tracer } from '$lib/server/telemetry/tracer';
@@ -47,14 +46,17 @@ export async function load({ locals: { session } }) {
       'session.user.id': userId,
     });
 
-    const [drafts, labs] = await Promise.all([getDrafts(db), getLabRegistry(db)]);
+    const [drafts, draftStatsRecords] = await Promise.all([
+      getDrafts(db),
+      getDraftStatsRecords(db),
+    ]);
 
     logger.debug('drafts page loaded', {
       'draft.count': drafts.length,
-      'lab.count': labs.length,
+      'draft.stats.record_count': draftStatsRecords.length,
     });
 
-    return { drafts, labs };
+    return { drafts, draftStatsRecords };
   });
 }
 
@@ -149,5 +151,45 @@ async function initDraft(db: DrizzleTransaction, maxRounds: number, registration
       );
 
     return draft;
+  });
+}
+
+async function getDraftStatsRecords(db: DbConnection) {
+  return await tracer.asyncSpan('get-draft-stats-records', async () => {
+    const draftedCounts = db.$with('_drafted_counts').as(
+      db
+        .select({
+          draftId: schema.facultyChoiceUser.draftId,
+          labId: schema.facultyChoiceUser.labId,
+          draftedStudents: sql`${count(schema.facultyChoiceUser.studentUserId)}`
+            .mapWith(coerceNumber)
+            .as('_drafted_students'),
+        })
+        .from(schema.facultyChoiceUser)
+        .groupBy(({ draftId, labId }) => [draftId, labId]),
+    );
+    return await db
+      .with(draftedCounts)
+      .select({
+        draftId: schema.draftLabQuota.draftId,
+        activePeriodStart: sql`lower(${schema.draft.activePeriod})`
+          .mapWith(coerceDate)
+          .as('_active_period_start'),
+        labId: schema.draftLabQuota.labId,
+        draftedStudents: sql`coalesce(${draftedCounts.draftedStudents}, 0)`
+          .mapWith(coerceNumber)
+          .as('_drafted_students'),
+      })
+      .from(schema.draftLabQuota)
+      .innerJoin(schema.draft, eq(schema.draftLabQuota.draftId, schema.draft.id))
+      .leftJoin(
+        draftedCounts,
+        and(
+          eq(schema.draftLabQuota.draftId, draftedCounts.draftId),
+          eq(schema.draftLabQuota.labId, draftedCounts.labId),
+        ),
+      )
+      .where(isNotNull(sql`upper(${schema.draft.activePeriod})`))
+      .orderBy(({ activePeriodStart, labId }) => [asc(activePeriodStart), asc(labId)]);
   });
 }
