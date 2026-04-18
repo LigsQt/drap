@@ -218,6 +218,13 @@
       "when": 1775516134182,
       "tag": "0030_use-uuid-for-session-id",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1776472044776,
+      "tag": "0031_draft-student-avatar-object-key",
+      "breakpoints": true
     }
   ]
 }
