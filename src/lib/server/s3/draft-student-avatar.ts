@@ -11,14 +11,12 @@ const MAX_AVATAR_BYTES = 4 * 1024 * 1024;
 const DRAFT_AVATAR_BUCKET = 'draft-student-avatar';
 
 async function putDraftAvatarObject(objectKey: string, contentType: string, bytes: Buffer) {
-  const normalizedContentType = normalizeImageContentType(contentType);
-  assertPayloadSize(bytes.byteLength, MAX_AVATAR_BYTES);
   await s3.send(
     new PutObjectCommand({
       Bucket: DRAFT_AVATAR_BUCKET,
       Key: objectKey,
       Body: bytes,
-      ContentType: normalizedContentType,
+      ContentType: contentType,
     }),
   );
 }
@@ -52,7 +50,9 @@ export async function uploadDraftAvatarFromCdn(
 
   const contentType = response.headers.get('Content-Type');
   assert(contentType !== null, 'avatar response missing content type');
-  const normalizedContentType = normalizeImageContentType(contentType);
+
+  // Google CDN and Vercel CDN are trusted sources of SVGs.
+  const normalizedContentType = normalizeImageContentType(contentType, true);
 
   const contentLength = response.headers.get('Content-Length');
   if (contentLength !== null) {
@@ -67,6 +67,7 @@ export async function uploadDraftAvatarFromCdn(
 }
 
 export async function uploadDraftAvatarOverride(objectKey: string, file: File) {
+  // Ban SVGs for user-uploaded avatars because it is untrusted data (potential XSS attack vector!).
   const normalizedContentType = normalizeImageContentType(file.type);
   assertPayloadSize(file.size, MAX_AVATAR_BYTES);
 

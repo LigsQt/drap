@@ -347,7 +347,8 @@ export const actions = {
         if (error instanceof S3ContentTypeError) {
           logger.fatal(error.message, void 0, { 'avatar.content_type': error.contentType });
           return actionFailure(415, {
-            message: 'Avatar must be a JPEG, PNG, WebP, or SVG image.',
+            // We don't advertise SVG support for user uploads!
+            message: 'Avatar must be a JPEG, PNG, or WebP image.',
           });
         } else if (error instanceof S3EmptyPayloadError) {
           logger.fatal(error.message);

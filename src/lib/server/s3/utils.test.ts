@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, test } from 'vitest';
 
 import {
   assertPayloadSize,
@@ -18,15 +18,15 @@ function expectError<T extends Error>(error: unknown, ExpectedError: new (...arg
 }
 
 describe('normalizeImageContentType', () => {
-  it('canonicalizes supported content types with parameters', () => {
+  test('canonicalizes supported content types with parameters', () => {
     expect(normalizeImageContentType('image/jpeg; charset=UTF-8')).toBe('image/jpeg');
   });
 
-  it('canonicalizes mixed-case supported content types', () => {
+  test('canonicalizes mixed-case supported content types', () => {
     expect(normalizeImageContentType('IMAGE/PNG')).toBe('image/png');
   });
 
-  it('rejects unsupported content types', () => {
+  test('rejects unsupported content types', () => {
     try {
       normalizeImageContentType('text/plain; charset=UTF-8');
       throw new Error('expected normalizeImageContentType to throw');
@@ -36,7 +36,7 @@ describe('normalizeImageContentType', () => {
     }
   });
 
-  it('rejects malformed content types', () => {
+  test('rejects malformed content types', () => {
     try {
       normalizeImageContentType('not-a-real-type');
       throw new Error('expected normalizeImageContentType to throw');
@@ -46,21 +46,31 @@ describe('normalizeImageContentType', () => {
     }
   });
 
-  it('accepts SVG images with parameters', () => {
-    expect(normalizeImageContentType('image/svg+xml; charset=UTF-8')).toBe('image/svg+xml');
+  test('rejects SVG images by default', () => {
+    try {
+      normalizeImageContentType('image/svg+xml; charset=UTF-8');
+      throw new Error('expected normalizeImageContentType to throw');
+    } catch (error) {
+      const typedError = expectError(error, S3ContentTypeError);
+      expect(typedError.contentType).toBe('image/svg+xml; charset=UTF-8');
+    }
+  });
+
+  test('accepts SVG images with parameters when allowSvg is enabled for trusted sources', () => {
+    expect(normalizeImageContentType('image/svg+xml; charset=UTF-8', true)).toBe('image/svg+xml');
   });
 });
 
 describe('assertPayloadSize', () => {
-  it('accepts a positive payload size within the maximum', () => {
+  test('accepts a positive payload size within the maximum', () => {
     expect(() => assertPayloadSize(1024, 4096)).not.toThrow();
   });
 
-  it('accepts a payload size exactly at the maximum', () => {
+  test('accepts a payload size exactly at the maximum', () => {
     expect(() => assertPayloadSize(4096, 4096)).not.toThrow();
   });
 
-  it('rejects an empty payload', () => {
+  test('rejects an empty payload', () => {
     try {
       assertPayloadSize(0, 4096);
       throw new Error('expected assertPayloadSize to throw');
@@ -69,7 +79,7 @@ describe('assertPayloadSize', () => {
     }
   });
 
-  it('rejects negative payload sizes as empty', () => {
+  test('rejects negative payload sizes as empty', () => {
     try {
       assertPayloadSize(-1, 4096);
       throw new Error('expected assertPayloadSize to throw');
@@ -78,7 +88,7 @@ describe('assertPayloadSize', () => {
     }
   });
 
-  it('rejects payloads larger than the maximum', () => {
+  test('rejects payloads larger than the maximum', () => {
     try {
       assertPayloadSize(4097, 4096);
       throw new Error('expected assertPayloadSize to throw');
@@ -91,27 +101,27 @@ describe('assertPayloadSize', () => {
 });
 
 describe('assertSecureGoogleCdnUrl', () => {
-  it('accepts secure googleusercontent hosts', () => {
+  test('accepts secure googleusercontent hosts', () => {
     const url = assertSecureCdnUrl('https://lh3.googleusercontent.com/avatar.png');
 
     expect(url.hostname).toBe('lh3.googleusercontent.com');
   });
 
-  it('accepts secure Vercel avatar hosts', () => {
+  test('accepts secure Vercel avatar hosts', () => {
     const url = assertSecureCdnUrl('https://avatar.vercel.sh/drap.svg');
 
     expect(url.hostname).toBe('avatar.vercel.sh');
     expect(url.pathname).toBe('/drap.svg');
   });
 
-  it('accepts secure googleusercontent hosts with mixed-case input', () => {
+  test('accepts secure googleusercontent hosts with mixed-case input', () => {
     const url = assertSecureCdnUrl('https://LH3.GoogleUserContent.com/avatar.png?size=256');
 
     expect(url.hostname).toBe('lh3.googleusercontent.com');
     expect(url.searchParams.get('size')).toBe('256');
   });
 
-  it('rejects non-https URLs', () => {
+  test('rejects non-https URLs', () => {
     try {
       assertSecureCdnUrl('http://lh3.googleusercontent.com/avatar.png');
       throw new Error('expected assertSecureGoogleCdnUrl to throw');
@@ -121,7 +131,7 @@ describe('assertSecureGoogleCdnUrl', () => {
     }
   });
 
-  it('rejects disallowed hosts', () => {
+  test('rejects disallowed hosts', () => {
     try {
       assertSecureCdnUrl('https://example.com/avatar.png');
       throw new Error('expected assertSecureGoogleCdnUrl to throw');
@@ -131,13 +141,13 @@ describe('assertSecureGoogleCdnUrl', () => {
     }
   });
 
-  it('accepts googleusercontent subdomains by registrable domain', () => {
+  test('accepts googleusercontent subdomains by registrable domain', () => {
     const url = assertSecureCdnUrl('https://foo.bar.googleusercontent.com/avatar.png');
 
     expect(url.hostname).toBe('foo.bar.googleusercontent.com');
   });
 
-  it('rejects sibling domains that only share a suffix', () => {
+  test('rejects sibling domains that only share a suffix', () => {
     try {
       assertSecureCdnUrl('https://googleusercontent.com.example.com/avatar.png');
       throw new Error('expected assertSecureGoogleCdnUrl to throw');
@@ -147,7 +157,7 @@ describe('assertSecureGoogleCdnUrl', () => {
     }
   });
 
-  it('rejects lookalike registrable domains', () => {
+  test('rejects lookalike registrable domains', () => {
     try {
       assertSecureCdnUrl('https://googleusercontent.co/avatar.png');
       throw new Error('expected assertSecureGoogleCdnUrl to throw');
@@ -157,7 +167,7 @@ describe('assertSecureGoogleCdnUrl', () => {
     }
   });
 
-  it('propagates malformed URLs before host checks run', () => {
+  test('propagates malformed URLs before host checks run', () => {
     expect(() => assertSecureCdnUrl('not a url')).toThrow(TypeError);
   });
 });

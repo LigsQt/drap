@@ -1,8 +1,6 @@
 import { extension, lookup } from 'mime-types';
 import { getDomain } from 'tldts';
 
-import { dev } from '$app/environment';
-
 export class S3ContentTypeError extends Error {
   constructor(public readonly contentType: string) {
     super(`unsupported S3 content type: ${contentType}`);
@@ -11,7 +9,7 @@ export class S3ContentTypeError extends Error {
 }
 
 /** @throws {S3ContentTypeError} */
-export function normalizeImageContentType(contentType: string) {
+export function normalizeImageContentType(contentType: string, allowSvg = false) {
   const contentExtension = extension(contentType);
   if (contentExtension === false) throw new S3ContentTypeError(contentType);
 
@@ -20,9 +18,8 @@ export function normalizeImageContentType(contentType: string) {
 
   switch (canonicalContentType) {
     case 'image/svg+xml':
-      // Vercel SVGs are only supported in development mode.
-      if (!dev) break;
-    // fall through
+      if (!allowSvg) break;
+    // falls through
     case 'image/jpeg':
     case 'image/png':
     case 'image/webp':
