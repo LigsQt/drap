@@ -30,9 +30,9 @@
         draft outcome cannot be appealed on the basis of this choice.
       </Callout>
     {:else if consent === 'google'}
-      <Callout variant="warning" title="Your Google photo will be snapshotted at submission">
-        Your current Google profile photo is captured once at the moment you submit this form. It is
-        not a live link. If you change or remove your Google photo afterward, the image that the
+      <Callout variant="warning" title="Your profile picture will be snapshotted at submission">
+        Your current profile picture is captured once at the moment you submit this form. It is not
+        a live link. If you change or remove your profile picture afterward, the image that the
         faculty will see during review will be the same. Make sure the photo displayed above is the
         one you want faculty to see before submitting.
       </Callout>
