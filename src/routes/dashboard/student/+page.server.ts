@@ -132,6 +132,7 @@ export async function load({ locals: { session } }) {
     function buildSubmission(r: NonNullable<typeof rankings>) {
       return {
         createdAt: r.createdAt,
+        avatarObjectKey: r.avatarObjectKey,
         labs: r.labRemarks.map(({ labId, labName, remark }) => ({
           id: labId,
           name: labName,
@@ -468,6 +469,7 @@ async function getStudentRankings(db: DbConnection, draftId: bigint, userId: str
     const sub = db
       .select({
         createdAt: schema.studentRank.createdAt,
+        avatarObjectKey: schema.studentRank.avatarObjectKey,
         index: schema.studentRankLab.index,
         labId: schema.studentRankLab.labId,
         remark: schema.studentRankLab.remark,
@@ -485,6 +487,7 @@ async function getStudentRankings(db: DbConnection, draftId: bigint, userId: str
     return await db
       .select({
         createdAt: sub.createdAt,
+        avatarObjectKey: sub.avatarObjectKey,
         labRemarks:
           sql`coalesce(jsonb_agg(jsonb_build_object('labId', ${sub.labId}, 'labName', ${schema.lab.name}, 'remark', ${sub.remark}) ORDER BY ${sub.index}) filter (where ${isNotNull(sub.labId)}), '[]'::jsonb)`.mapWith(
             vals => v.parse(StudentRankingLabRemark, vals),
@@ -492,7 +495,7 @@ async function getStudentRankings(db: DbConnection, draftId: bigint, userId: str
       })
       .from(sub)
       .leftJoin(schema.lab, eq(sub.labId, schema.lab.id))
-      .groupBy(sub.createdAt)
+      .groupBy(sub.createdAt, sub.avatarObjectKey)
       .then(assertOptional);
   });
 }
