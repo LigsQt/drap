@@ -18,6 +18,11 @@ import {
   getDraftLabQuotaLabIds,
   getLabById,
 } from '$lib/server/database/drizzle';
+import {
+  deleteDraftAvatarObject,
+  uploadDraftAvatarFromCdn,
+  uploadDraftAvatarOverride,
+} from '$lib/server/s3/draft-student-avatar';
 import { Logger } from '$lib/server/telemetry/logger';
 import {
   S3ContentTypeError,
@@ -27,10 +32,6 @@ import {
   S3TooLargePayloadError,
 } from '$lib/server/s3/util';
 import { Tracer } from '$lib/server/telemetry/tracer';
-import {
-  uploadDraftAvatarFromCdn,
-  uploadDraftAvatarOverride,
-} from '$lib/server/s3/draft-student-avatar';
 
 const SubmitFormData = v.object({
   draft: v.pipe(v.string(), v.minLength(1)),
@@ -267,6 +268,8 @@ export const actions = {
         error(400);
       }
 
+      // eslint-disable-next-line @typescript-eslint/init-declarations
+      let objectKey: string | undefined;
       try {
         await db.transaction(
           async db => {
@@ -328,15 +331,16 @@ export const actions = {
               logger.warn('user explicitly opted out of avatar');
               await insertStudentRanking(db, draftId, user.id);
             } else {
-              const objectKey = await insertStudentRankingWithAvatar(db, draftId, user.id);
+              const key = await insertStudentRankingWithAvatar(db, draftId, user.id);
               if (typeof avatar === 'string') {
                 logger.info('user explicitly opted in for default Google avatar');
                 assert(user.avatarUrl.length > 0, 'missing google avatar URL');
-                await uploadDraftAvatarFromCdn(objectKey, user.avatarUrl, fetch);
+                await uploadDraftAvatarFromCdn(key, user.avatarUrl, fetch);
               } else {
                 logger.info('user explicitly opted in for custom avatar');
-                await uploadDraftAvatarOverride(objectKey, avatar);
+                await uploadDraftAvatarOverride(key, avatar);
               }
+              objectKey = key; // assigned only after upload is complete
             }
 
             await insertStudentRankingLabs(db, draftId, user.id, labs, remarks);
@@ -344,6 +348,15 @@ export const actions = {
           { isolationLevel: 'read committed' },
         );
       } catch (error) {
+        if (typeof objectKey !== 'undefined') {
+          // Super rare case where an avatar object is left dangling due to unexpected database
+          // transaction rollbacks. Only present after the upload is complete.
+          logger.warn('deleting failed avatar object', {
+            'draft.avatar.object_key': objectKey,
+          });
+          await deleteDraftAvatarObject(objectKey);
+        }
+
         if (error instanceof S3ContentTypeError) {
           logger.fatal(error.message, void 0, { 'avatar.content_type': error.contentType });
           return actionFailure(415, {
