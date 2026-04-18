@@ -440,7 +440,7 @@ async function getLabAndRemainingStudentsInDraftWithLabPreference(
           email: schema.user.email,
           givenName: schema.user.givenName,
           familyName: schema.user.familyName,
-          avatarUrl: schema.user.avatarUrl,
+          avatarObjectKey: schema.studentRank.avatarObjectKey,
           studentNumber: schema.user.studentNumber,
           remark: schema.studentRankLab.remark,
         })
@@ -484,11 +484,18 @@ async function getLabAndRemainingStudentsInDraftWithLabPreference(
           email: schema.user.email,
           givenName: schema.user.givenName,
           familyName: schema.user.familyName,
-          avatarUrl: schema.user.avatarUrl,
+          avatarObjectKey: schema.studentRank.avatarObjectKey,
           studentNumber: schema.user.studentNumber,
         })
         .from(schema.facultyChoiceUser)
         .innerJoin(schema.user, eq(schema.facultyChoiceUser.studentUserId, schema.user.id))
+        .leftJoin(
+          schema.studentRank,
+          and(
+            eq(schema.studentRank.draftId, schema.facultyChoiceUser.draftId),
+            eq(schema.studentRank.userId, schema.facultyChoiceUser.studentUserId),
+          ),
+        )
         .where(
           and(
             eq(schema.facultyChoiceUser.draftId, draftId),
