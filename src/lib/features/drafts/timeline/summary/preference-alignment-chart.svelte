@@ -25,9 +25,17 @@
     return color;
   }
 
+  const bordaFormat = format('.1~%');
+  const percentFormat = format('.2~%');
+  const integerFormat = format('d');
+
   const chartConfig = $derived(
     Object.fromEntries(
-      data.slices.map(({ label }, i) => [label, { label, color: sliceColor(label, i) }]),
+      data.slices.map(({ label, count }, i) => {
+        let subtitle = `${integerFormat(count)} Student`;
+        if (count > 1) subtitle += 's';
+        return [label, { label: subtitle, color: sliceColor(label, i) }];
+      }),
     ),
   );
 
@@ -40,7 +48,7 @@
     })),
   );
 
-  const percentFormat = format('.0%');
+  const totalAssigned = $derived(data.slices.reduce((sum, { count }) => sum + count, 0));
 </script>
 
 <Card.Root
@@ -86,10 +94,13 @@
         {#snippet tooltip()}
           <Chart.Tooltip
             indicator="dot"
-            hideLabel
             labelAccessor={d => {
               assert(typeof d === 'object' && d !== null && 'label' in d);
               return d.label;
+            }}
+            valueFormatter={value => {
+              assert(typeof value === 'number');
+              return percentFormat(value / totalAssigned);
             }}
           />
         {/snippet}
@@ -97,7 +108,7 @@
       <div
         class="pointer-events-none absolute inset-0 right-[100px] flex flex-col items-center justify-center"
       >
-        <span class="text-3xl font-bold tabular-nums">{percentFormat(data.bordaScore)}</span>
+        <span class="text-3xl font-bold tabular-nums">{bordaFormat(data.bordaScore)}</span>
         <div class="flex items-center gap-1 text-xs text-muted-foreground">
           <span>Borda Score</span>
           <Popover.Root>

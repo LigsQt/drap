@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { format } from 'd3-format';
   import { PieChart } from 'layerchart';
 
   import * as Card from '$lib/components/ui/card';
@@ -23,12 +24,22 @@
     return entry.labId === null ? 'Unassigned' : entry.labId.toUpperCase();
   }
 
+  const percentFormat = format('.2~%');
+  const integerFormat = format('d');
+
   const chartConfig = $derived(
     Object.fromEntries(
-      data.map((entry, i) => [
-        shortLabel(entry),
-        { label: shortLabel(entry), color: chartColor(i) },
-      ]),
+      data.map((entry, i) => {
+        let subtitle = `${integerFormat(entry.count)} Student`;
+        if (entry.count > 1) subtitle += 's';
+        return [
+          shortLabel(entry),
+          {
+            label: subtitle,
+            color: chartColor(i),
+          },
+        ];
+      }),
     ),
   );
 
@@ -41,6 +52,8 @@
       color: chartColor(i),
     })),
   );
+
+  const totalAssigned = $derived(data.reduce((sum, { count }) => sum + count, 0));
 </script>
 
 <Card.Root
@@ -67,6 +80,10 @@
             labelAccessor={d => {
               assert(typeof d === 'object' && d !== null && 'labName' in d);
               return d.labName;
+            }}
+            valueFormatter={value => {
+              assert(typeof value === 'number');
+              return percentFormat(value / totalAssigned);
             }}
           />
         {/snippet}
