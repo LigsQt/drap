@@ -5,7 +5,6 @@
   import type { MotionOptions } from 'layerchart/utils/motion.svelte';
   import { prefersReducedMotion } from 'svelte/motion';
   import { scalePoint } from 'd3-scale';
-  import { tickStep } from 'd3-array';
 
   import * as Card from '$lib/components/ui/card';
   import * as Chart from '$lib/components/ui/chart';
@@ -28,16 +27,6 @@
           axisMotion: { type: 'tween', duration: 220, easing: cubicOut },
         },
   );
-
-  const yTicks = $derived.by(() => {
-    const step = Math.max(1, tickStep(0, chart.maxValue, 4));
-    const ticks = Array.from(
-      { length: Math.floor(chart.maxValue / step) + 1 },
-      (_, index) => index * step,
-    );
-    if (ticks.at(-1) === chart.maxValue) return ticks;
-    return [...ticks, chart.maxValue];
-  });
 
   const integerFormat = format('d');
   const yearFormat = format('d');
@@ -67,6 +56,7 @@
         grid
         points={{ r: 4, motion: chartMotion }}
         yDomain={[0, chart.maxValue]}
+        yNice={4}
         props={{
           spline: {
             strokeWidth: 3,
@@ -79,7 +69,7 @@
             tickLabelProps: { dy: 8 },
           },
           yAxis: {
-            ticks: yTicks,
+            ticks: 4,
             format: integerFormat,
             motion: axisMotion,
             tickLabelProps: { dx: -8 },

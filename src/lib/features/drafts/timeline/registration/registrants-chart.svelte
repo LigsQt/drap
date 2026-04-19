@@ -3,7 +3,7 @@
   import { cubicOut } from 'svelte/easing';
   import { eachDayOfInterval, startOfDay } from 'date-fns';
   import { format } from 'd3-format';
-  import { max, rollup, tickStep } from 'd3-array';
+  import { max, rollup } from 'd3-array';
   import type { MotionOptions } from 'layerchart/utils/motion.svelte';
   import { prefersReducedMotion } from 'svelte/motion';
 
@@ -54,13 +54,6 @@
   const yMax = $derived.by(() => {
     const value = max(allDaysData, ({ count }) => count);
     return typeof value === 'undefined' || value === 0 ? 1 : value;
-  });
-
-  const yTicks = $derived.by(() => {
-    const step = Math.max(1, tickStep(0, yMax, 4));
-    const ticks = Array.from({ length: Math.floor(yMax / step) + 1 }, (_, index) => index * step);
-    if (ticks.at(-1) === yMax) return ticks;
-    return [...ticks, yMax];
   });
 
   const annotations = $derived.by(() => {
@@ -145,6 +138,7 @@
         ]}
         points
         yDomain={[0, yMax]}
+        yNice={4}
         props={{
           area: {
             fillOpacity: 0.22,
@@ -158,7 +152,7 @@
             tickLabelProps: { dy: 8 },
           },
           yAxis: {
-            ticks: yTicks,
+            ticks: 4,
             format: value => integerFormat(value),
             motion: axisMotion,
             tickLabelProps: { dx: -8 },

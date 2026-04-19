@@ -3,7 +3,6 @@
   import { cubicOut } from 'svelte/easing';
   import { format } from 'd3-format';
   import { prefersReducedMotion } from 'svelte/motion';
-  import { tickStep } from 'd3-array';
 
   import * as Chart from '$lib/components/ui/chart';
   import { assert } from '$lib/assert';
@@ -20,16 +19,6 @@
   const chartMax = $derived(
     Math.max(...chart.allLabs.assignedByPhase.slice(0, displayedRounds), 1),
   );
-
-  const yTicks = $derived.by(() => {
-    const step = Math.max(1, tickStep(0, chartMax, 4));
-    const ticks = Array.from(
-      { length: Math.floor(chartMax / step) + 1 },
-      (_, index) => index * step,
-    );
-    if (ticks.at(-1) === chartMax) return ticks;
-    return [...ticks, chartMax];
-  });
 
   function chartColor(i: number) {
     const color = CHART_COLORS[i % CHART_COLORS.length];
@@ -94,6 +83,7 @@
       groupPadding={0.15}
       bandPadding={0.25}
       yDomain={[0, chartMax]}
+      yNice={4}
       props={{
         xAxis: {
           grid: false,
@@ -101,7 +91,7 @@
           motion: axisMotion,
         },
         yAxis: {
-          ticks: yTicks,
+          ticks: 4,
           format: value => integerFormat(value),
           motion: axisMotion,
           tickLabelProps: { dx: -8 },
