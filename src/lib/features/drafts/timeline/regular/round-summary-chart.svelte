@@ -95,7 +95,6 @@
       bandPadding={0.25}
       yDomain={[0, chartMax]}
       props={{
-        tooltip: { context: { mode: 'band' } },
         xAxis: {
           grid: false,
           tickLabelProps: { dy: 8 },

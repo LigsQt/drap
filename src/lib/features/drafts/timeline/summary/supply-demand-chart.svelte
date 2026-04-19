@@ -117,7 +117,6 @@
           yAxis: {
             grid: false,
           },
-          tooltip: { context: { mode: 'band' } },
         }}
       >
         {#snippet tooltip()}
