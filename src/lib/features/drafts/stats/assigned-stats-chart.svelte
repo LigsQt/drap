@@ -72,7 +72,6 @@
             strokeWidth: 3,
             motion: chartMotion,
           },
-          tooltip: { context: { mode: 'band' } },
           xAxis: {
             grid: false,
             format: yearFormat,

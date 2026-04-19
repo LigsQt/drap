@@ -173,7 +173,6 @@
             class: 'draft-rounds-chart-point',
             motion: chartMotion,
           },
-          tooltip: { context: { mode: 'band' } },
           xAxis: {
             grid: false,
             format: value => axisLabelByTooltipLabel.get(value) ?? `${value}`,
