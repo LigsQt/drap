@@ -78,8 +78,10 @@
         label="label"
         c="color"
         innerRadius={0.6}
+        range={[270, 630]}
         padding={{ right: 100 }}
         legend={{ orientation: 'vertical', placement: 'right' }}
+        props={{ pie: { sort: null } }}
       >
         {#snippet tooltip()}
           <Chart.Tooltip
