@@ -37,7 +37,6 @@ export interface DraftLabQuotaSnapshot {
   labName: schema.Lab['name'];
   initialQuota: number;
   lotteryQuota: number;
-  finalizedQuota: number;
 }
 
 export interface DraftAssignmentRecord extends Pick<

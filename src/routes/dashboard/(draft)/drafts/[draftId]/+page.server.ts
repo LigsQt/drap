@@ -140,7 +140,6 @@ export async function load({ params, locals: { session } }) {
       quotaSnapshots,
       bordaScores,
       alignmentRows,
-      draft.maxRounds,
       studentCount,
     );
 
@@ -150,10 +149,7 @@ export async function load({ params, locals: { session } }) {
       requestedAt: new Date(),
       labs,
       studentCount,
-      snapshots: quotaSnapshots.map(row => ({
-        ...row,
-        finalizedQuota: row.initialQuota + row.lotteryQuota,
-      })),
+      snapshots: quotaSnapshots,
       assignmentSummary,
       draftSummaryChartData,
       allowlistCount,

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildDraftAssignmentSummary,
+  buildDraftSummaryChartData,
   buildPreferenceAlignment,
   ordinalChoice,
 } from './assignment-summary';
@@ -182,5 +183,78 @@ describe('buildPreferenceAlignment', () => {
     const result = buildPreferenceAlignment([{ preferenceRank: 1n, totalRanked: 1, count: 3 }]);
 
     expect(result.bordaScore).toBeCloseTo(1.0);
+  });
+});
+
+describe('buildDraftSummaryChartData', () => {
+  it('computes supply share from initial quota only', () => {
+    const summary = buildDraftSummaryChartData(
+      [{ labId: 'lab-1', round: 1, count: 2 }],
+      [
+        { id: 'lab-1', name: 'Lab One', quota: 4 },
+        { id: 'lab-2', name: 'Lab Two', quota: 4 },
+      ],
+      [
+        { labId: 'lab-1', initialQuota: 2 },
+        { labId: 'lab-2', initialQuota: 2 },
+      ],
+      [
+        { labId: 'lab-1', bordaScore: 3 },
+        { labId: 'lab-2', bordaScore: 1 },
+      ],
+      [],
+      2,
+    );
+
+    expect(summary.supplyVsDemand).toEqual([
+      {
+        labId: 'lab-1',
+        labName: 'Lab One',
+        supplyShare: 0.5,
+        demandShare: 0.75,
+        actualShare: 1,
+      },
+      {
+        labId: 'lab-2',
+        labName: 'Lab Two',
+        supplyShare: 0.5,
+        demandShare: 0.25,
+        actualShare: 0,
+      },
+    ]);
+  });
+
+  it('returns zero supply shares when total initial quota is zero', () => {
+    const summary = buildDraftSummaryChartData(
+      [],
+      [
+        { id: 'lab-1', name: 'Lab One', quota: 0 },
+        { id: 'lab-2', name: 'Lab Two', quota: 0 },
+      ],
+      [
+        { labId: 'lab-1', initialQuota: 0 },
+        { labId: 'lab-2', initialQuota: 0 },
+      ],
+      [],
+      [],
+      0,
+    );
+
+    expect(summary.supplyVsDemand).toEqual([
+      {
+        labId: 'lab-1',
+        labName: 'Lab One',
+        supplyShare: 0,
+        demandShare: 0,
+        actualShare: 0,
+      },
+      {
+        labId: 'lab-2',
+        labName: 'Lab Two',
+        supplyShare: 0,
+        demandShare: 0,
+        actualShare: 0,
+      },
+    ]);
   });
 });

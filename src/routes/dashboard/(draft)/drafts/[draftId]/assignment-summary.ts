@@ -14,7 +14,6 @@ import type {
 interface QuotaSnapshot {
   labId: string;
   initialQuota: number;
-  lotteryQuota: number;
 }
 
 function getPhaseIndex(round: number | null, maxRounds: number) {
@@ -204,14 +203,14 @@ function buildSupplyVsDemand(
 
   const totalSupply = d3sum(labs, lab => {
     const q = quotaByLab.get(lab.id);
-    return q ? q.initialQuota + q.lotteryQuota : 0;
+    return typeof q === 'undefined' ? 0 : q.initialQuota;
   });
   const totalDemand = d3sum(labs, lab => bordaByLab.get(lab.id)?.bordaScore ?? 0);
   const totalActual = d3sum(labs, lab => actualByLab.get(lab.id) ?? 0);
 
   return labs.map(lab => {
     const supply = quotaByLab.get(lab.id);
-    const supplyVal = supply ? supply.initialQuota + supply.lotteryQuota : 0;
+    const supplyVal = typeof supply === 'undefined' ? 0 : supply.initialQuota;
     const demandVal = bordaByLab.get(lab.id)?.bordaScore ?? 0;
     const actualVal = actualByLab.get(lab.id) ?? 0;
     return {
@@ -230,7 +229,6 @@ export function buildDraftSummaryChartData(
   quotaSnapshots: QuotaSnapshot[],
   bordaScores: DraftLabBordaScore[],
   alignmentRows: DraftPreferenceAlignmentRow[],
-  maxRounds: number,
   totalStudents: number,
 ): DraftSummaryChartData {
   return {

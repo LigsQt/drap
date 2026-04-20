@@ -57,7 +57,7 @@
                 <mo>&sum;</mo><mi>q</mi>
                 <mo>)</mo>
               </math>
-              — the lab's share of total available capacity, combining both initial and lottery quotas.
+              — the lab's share of total initial quota across all labs in the draft.
             </li>
             <li>
               <strong>Demand</strong>

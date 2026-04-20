@@ -20,7 +20,7 @@
 
   interface Props {
     draftId: string;
-    draft: Pick<Draft, 'activePeriodStart' | 'activePeriodEnd' | 'maxRounds'>;
+    draft: Pick<Draft, 'maxRounds'>;
     totalStudents: number;
     assignmentSummary: DraftAssignmentSummary;
     draftSummaryChartData: DraftSummaryChartData;
