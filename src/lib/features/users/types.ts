@@ -7,14 +7,10 @@ export type RegisteredAdmin = Pick<
   'id' | 'email' | 'givenName' | 'familyName' | 'avatarUrl'
 >;
 
-export interface CandidateSenderEntry {
-  id: schema.User['id'];
-  email: schema.User['email'];
-  givenName: schema.User['givenName'];
-  familyName: schema.User['familyName'];
-  avatarUrl: schema.User['avatarUrl'];
-  isActive: boolean;
-}
+export type CandidateSenderEntry = Pick<
+  schema.User,
+  'id' | 'email' | 'givenName' | 'familyName' | 'avatarUrl'
+> & { isActive: boolean };
 
 export function deriveSenderRole(
   userId: schema.User['id'],
