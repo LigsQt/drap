@@ -1,0 +1,28 @@
+<script lang="ts" module>
+  import type { SenderRole } from '$lib/features/users/types';
+
+  export interface Props {
+    role: SenderRole;
+  }
+</script>
+
+<script lang="ts">
+  import ShieldCheckIcon from '@lucide/svelte/icons/shield-check';
+  import StarIcon from '@lucide/svelte/icons/star';
+
+  import { Badge } from '$lib/components/ui/badge';
+
+  const { role }: Props = $props();
+</script>
+
+{#if role === 'designated'}
+  <Badge variant="default" class="bg-success text-success-foreground hover:bg-success/90">
+    <StarIcon class="size-3" />
+    <span>Designated Sender</span>
+  </Badge>
+{:else if role === 'candidate'}
+  <Badge variant="secondary">
+    <ShieldCheckIcon class="size-3" />
+    <span>Candidate Sender</span>
+  </Badge>
+{/if}
