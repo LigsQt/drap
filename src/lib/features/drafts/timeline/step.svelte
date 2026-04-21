@@ -70,7 +70,7 @@
           />
         </Collapsible.Trigger>
         <Collapsible.Content>
-          <div class="rounded-lg bg-background py-4 md:p-4">
+          <div class="rounded-lg bg-background p-4">
             {@render children()}
           </div>
         </Collapsible.Content>
@@ -83,7 +83,7 @@
           {@render metadata()}
         {/if}
       </div>
-      <div class="rounded-lg bg-background py-4 md:p-4">
+      <div class="rounded-lg bg-background p-4">
         {@render children()}
       </div>
     {/if}

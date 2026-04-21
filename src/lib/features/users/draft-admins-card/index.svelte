@@ -37,7 +37,9 @@
 </script>
 
 <Card.Root {id}>
-  <Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
+  <Card.Header
+    class="flex flex-col items-start gap-2 pb-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:space-y-0"
+  >
     <Card.Title class="text-2xl">Draft Administrators</Card.Title>
     {@render headerAction?.()}
   </Card.Header>

@@ -35,18 +35,18 @@
 
 <div
   class={cn(
-    'flex flex-wrap items-center gap-3 rounded-lg p-2 transition-colors duration-150',
+    'grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-2 rounded-lg p-3 transition-colors duration-150 sm:grid-cols-[auto_minmax(0,1fr)_auto]',
     rowClass,
   )}
 >
-  <Avatar.Root class="size-12 shrink-0">
+  <Avatar.Root class="size-10 shrink-0">
     <Avatar.Image src={user.avatarUrl} alt="{user.givenName} {user.familyName}" />
     <Avatar.Fallback>
-      <UserCircleIcon class="size-12" />
+      <UserCircleIcon class="size-10" />
     </Avatar.Fallback>
   </Avatar.Root>
-  <div class="min-w-0 grow">
-    <div class="flex flex-wrap items-center gap-2">
+  <div class="min-w-0">
+    <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
       <strong class="truncate"
         ><span class="uppercase">{user.familyName}</span>, {user.givenName}</strong
       >
@@ -61,9 +61,13 @@
   </div>
   {#if role === 'none'}
     {#if isSelf}
-      <VolunteerButton />
+      <div class="col-span-2 justify-self-end sm:col-span-1">
+        <VolunteerButton />
+      </div>
     {/if}
   {:else}
-    <AdminActions userId={user.id} {role} />
+    <div class="col-span-2 justify-self-end sm:col-span-1">
+      <AdminActions userId={user.id} {role} />
+    </div>
   {/if}
 </div>
