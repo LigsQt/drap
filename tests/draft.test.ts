@@ -1,5 +1,5 @@
 import { addDays, subDays } from 'date-fns';
-import { expect, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 
 import { test } from './fixtures/users';
 
@@ -10,6 +10,10 @@ async function assertLogout(page: Page) {
   await expect(
     page.getByRole('heading', { name: 'Draft Ranking Automated Processor' }),
   ).toBeVisible();
+}
+
+function getDraftAdminRow(card: Locator, email: string) {
+  return card.getByRole('link', { name: email }).locator('xpath=ancestor::li[1]');
 }
 
 async function expectStatCards(
@@ -315,25 +319,29 @@ test.describe('Draft Lifecycle', () => {
     });
 
     test('promote flips row badge to Designated Sender', async ({
+      adminEmail,
       adminPage,
       seededCandidateSender: _seeded,
     }) => {
       await adminPage.goto('/dashboard/users/#draft-admins');
       const card = adminPage.locator('#draft-admins');
-      await expect(card.getByText('Candidate Sender', { exact: true })).toBeVisible();
+      const row = getDraftAdminRow(card, adminEmail);
+      await expect(row.getByText('Candidate Sender', { exact: true })).toBeVisible();
 
-      await card.getByRole('button', { name: 'Promote', exact: true }).click();
-      await expect(card.getByText('Designated Sender', { exact: true })).toBeVisible();
+      await row.getByRole('button', { name: 'Promote', exact: true }).click();
+      await expect(row.getByText('Designated Sender', { exact: true })).toBeVisible();
     });
 
     test('promoted sender shows info callout on draft layout', async ({
+      adminEmail,
       adminPage,
       seededCandidateSender: _seeded,
     }) => {
       await adminPage.goto('/dashboard/users/#draft-admins');
       const card = adminPage.locator('#draft-admins');
-      await card.getByRole('button', { name: 'Promote', exact: true }).click();
-      await expect(card.getByText('Designated Sender', { exact: true })).toBeVisible();
+      const row = getDraftAdminRow(card, adminEmail);
+      await row.getByRole('button', { name: 'Promote', exact: true }).click();
+      await expect(row.getByText('Designated Sender', { exact: true })).toBeVisible();
 
       await adminPage.goto('/dashboard/drafts/');
       const callout = adminPage.locator('[role="alert"][data-variant="info"]');
@@ -342,41 +350,47 @@ test.describe('Draft Lifecycle', () => {
     });
 
     test('demote reverts a Designated sender back to Candidate', async ({
+      adminEmail,
       adminPage,
       seededCandidateSender: _seeded,
     }) => {
       await adminPage.goto('/dashboard/users/#draft-admins');
       const card = adminPage.locator('#draft-admins');
-      await card.getByRole('button', { name: 'Promote', exact: true }).click();
-      await expect(card.getByText('Designated Sender', { exact: true })).toBeVisible();
+      const row = getDraftAdminRow(card, adminEmail);
+      await row.getByRole('button', { name: 'Promote', exact: true }).click();
+      await expect(row.getByText('Designated Sender', { exact: true })).toBeVisible();
 
-      await card.getByRole('button', { name: 'Demote', exact: true }).click();
-      await expect(card.getByText('Candidate Sender', { exact: true })).toBeVisible();
+      await row.getByRole('button', { name: 'Demote', exact: true }).click();
+      await expect(row.getByText('Candidate Sender', { exact: true })).toBeVisible();
     });
 
     test('remove drops a Candidate back to the volunteer state', async ({
+      adminEmail,
       adminPage,
       seededCandidateSender: _seeded,
     }) => {
       await adminPage.goto('/dashboard/users/#draft-admins');
       const card = adminPage.locator('#draft-admins');
-      await expect(card.getByText('Candidate Sender', { exact: true })).toBeVisible();
+      const row = getDraftAdminRow(card, adminEmail);
+      await expect(row.getByText('Candidate Sender', { exact: true })).toBeVisible();
 
-      await card.getByRole('button', { name: 'Remove', exact: true }).click();
-      await expect(card.getByText('Candidate Sender', { exact: true })).toHaveCount(0);
+      await row.getByRole('button', { name: 'Remove', exact: true }).click();
+      await expect(row.getByText('Candidate Sender', { exact: true })).toHaveCount(0);
       await expect(
         card.getByRole('button', { name: 'Volunteer as Candidate Sender' }),
       ).toBeVisible();
     });
 
     test('second admin can promote the first admin candidate', async ({
+      adminEmail,
       secondAdminPage,
       seededCandidateSender: _seeded,
     }) => {
       await secondAdminPage.goto('/dashboard/users/#draft-admins');
       const card = secondAdminPage.locator('#draft-admins');
-      await card.getByRole('button', { name: 'Promote', exact: true }).click();
-      await expect(card.getByText('Designated Sender', { exact: true })).toBeVisible();
+      const row = getDraftAdminRow(card, adminEmail);
+      await row.getByRole('button', { name: 'Promote', exact: true }).click();
+      await expect(row.getByText('Designated Sender', { exact: true })).toBeVisible();
     });
   });
 

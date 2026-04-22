@@ -747,13 +747,22 @@ const testAclHead = testLabs.extend<{ aclHeadPage: Page }, { aclHeadUserId: stri
   },
 });
 
-const testAdmin = testDatabase.extend<{ adminPage: Page }, { adminUserId: string }>({
+const testAdmin = testDatabase.extend<
+  { adminPage: Page },
+  { adminEmail: string; adminUserId: string }
+>({
+  adminEmail: [
+    // eslint-disable-next-line no-empty-pattern
+    async ({}, use, workerInfo) => {
+      await use(`admin+worker-${workerInfo.workerIndex}@up.edu.ph`);
+    },
+    { scope: 'worker' },
+  ],
   adminUserId: [
-    async ({ database }, use, workerInfo) => {
-      const workerTag = `worker-${workerInfo.workerIndex}`;
+    async ({ adminEmail, database }, use, workerInfo) => {
       const { id: userId } = await createTestUser(database, {
-        email: `admin+${workerTag}@up.edu.ph`,
-        googleUserId: `test-admin-${workerTag}`,
+        email: adminEmail,
+        googleUserId: `test-admin-worker-${workerInfo.workerIndex}`,
         givenName: 'Draft',
         familyName: 'Administrator',
         isAdmin: true,
