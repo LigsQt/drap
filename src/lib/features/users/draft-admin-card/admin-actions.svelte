@@ -14,7 +14,6 @@
   import type { Component } from 'svelte';
   import { toast } from 'svelte-sonner';
 
-  import { assert } from '$lib/assert';
   import { Button } from '$lib/components/ui/button';
   import { enhance } from '$app/forms';
   import { SenderRole } from '$lib/features/users/types';
@@ -40,18 +39,18 @@
           icon: ArrowUpIcon,
         },
   );
+
+  let disabled = $state(false);
 </script>
 
 <div class="flex items-center gap-1">
   <form
     method="post"
     action="/dashboard/users/?/{primary.action}"
-    use:enhance={({ submitter }) => {
-      assert(submitter !== null);
-      assert(submitter instanceof HTMLButtonElement);
-      submitter.disabled = true;
+    use:enhance={() => {
+      disabled = true;
       return async ({ update, result }) => {
-        submitter.disabled = false;
+        disabled = false;
         await update();
         switch (result.type) {
           case 'failure':
@@ -68,6 +67,7 @@
     <Button
       type="submit"
       size="sm"
+      {disabled}
       class={primary.action === 'promote'
         ? 'bg-success text-success-foreground hover:bg-success/80'
         : 'bg-warning text-warning-foreground hover:bg-warning/80'}
@@ -79,17 +79,15 @@
   <form
     method="post"
     action="/dashboard/users/?/remove"
-    use:enhance={({ submitter }) => {
-      assert(submitter !== null);
-      assert(submitter instanceof HTMLButtonElement);
-      submitter.disabled = true;
+    use:enhance={() => {
+      disabled = true;
       return async ({ update, result }) => {
-        submitter.disabled = false;
+        disabled = false;
         await update();
         switch (result.type) {
           case 'failure':
           case 'error':
-            toast.error('Failed to update sender.');
+            toast.error('Failed to remove sender.');
             break;
           default:
             break;
@@ -98,7 +96,7 @@
     }}
   >
     <input type="hidden" name="userId" value={userId} />
-    <Button type="submit" size="sm" variant="destructive">
+    <Button type="submit" size="sm" variant="destructive" {disabled}>
       <XIcon class="size-4" />
       <span>Remove</span>
     </Button>
