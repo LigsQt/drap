@@ -134,9 +134,6 @@
             submitter.disabled = false;
             await update();
             switch (result.type) {
-              case 'success':
-                toast.success('Sender removed.');
-                break;
               case 'failure':
               case 'error':
                 toast.error('Failed to update sender.');
