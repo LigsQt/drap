@@ -23,8 +23,8 @@
 
 <div
   class={cn(
-    'grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-2 rounded-lg p-3 transition-colors duration-150 sm:grid-cols-[auto_minmax(0,1fr)_auto]',
-    role === 'designated' ? 'bg-success/20 ring-2 ring-success/50 dark:bg-success/5' : 'bg-muted',
+    'grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-2 rounded-lg border-2 border-transparent p-3 transition-colors duration-150 sm:grid-cols-[auto_minmax(0,1fr)_auto]',
+    role === 'designated' ? 'border-success/50 bg-success/20 dark:bg-success/5' : 'bg-muted',
   )}
 >
   <Avatar.Root class="size-10 shrink-0">

@@ -53,9 +53,17 @@
       assert(submitter !== null);
       assert(submitter instanceof HTMLButtonElement);
       submitter.disabled = true;
-      return async ({ update }) => {
+      return async ({ update, result }) => {
         submitter.disabled = false;
         await update();
+        switch (result.type) {
+          case 'failure':
+          case 'error':
+            toast.error('Failed to update sender.');
+            break;
+          default:
+            break;
+        }
       };
     }}
   >
@@ -83,9 +91,6 @@
         submitter.disabled = false;
         await update();
         switch (result.type) {
-          case 'success':
-            toast.success('Sender removed.');
-            break;
           case 'failure':
           case 'error':
             toast.error('Failed to update sender.');

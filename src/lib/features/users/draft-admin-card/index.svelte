@@ -37,11 +37,16 @@
 </script>
 
 <Card.Root {id}>
-  <Card.Header
-    class="flex flex-col items-start gap-2 pb-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:space-y-0"
-  >
-    <Card.Title class="text-2xl">Draft Administrators</Card.Title>
-    {@render children?.()}
+  <Card.Header class="gap-3 pb-2">
+    <div
+      class="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+    >
+      <Card.Title class="text-2xl">Draft Administrators</Card.Title>
+      {@render children?.()}
+    </div>
+    <Card.Description>
+      Assign an administrator Gmail account to send draft notifications.
+    </Card.Description>
   </Card.Header>
   <Card.Content class="space-y-6">
     <SenderTimeline candidateCount={candidateSenders.length} {designated} />

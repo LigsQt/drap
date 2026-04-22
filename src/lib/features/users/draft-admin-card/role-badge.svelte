@@ -15,14 +15,16 @@
   const { role }: Props = $props();
 </script>
 
-{#if role === 'designated'}
-  <Badge variant="default">
-    <StarIcon class="size-3" />
-    <span>Designated Sender</span>
-  </Badge>
-{:else if role === 'candidate'}
-  <Badge variant="secondary">
-    <ShieldCheckIcon class="size-3" />
-    <span>Candidate Sender</span>
-  </Badge>
-{/if}
+<span class="inline-flex min-w-38 items-center">
+  {#if role === 'designated'}
+    <Badge variant="default">
+      <StarIcon class="size-3" />
+      <span>Designated Sender</span>
+    </Badge>
+  {:else if role === 'candidate'}
+    <Badge variant="secondary">
+      <ShieldCheckIcon class="size-3" />
+      <span>Candidate Sender</span>
+    </Badge>
+  {/if}
+</span>
