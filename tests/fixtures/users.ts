@@ -2,7 +2,6 @@ import { eq, sql } from 'drizzle-orm';
 import { mergeTests, type Page } from '@playwright/test';
 
 import * as schema from '$lib/server/database/schema';
-import { assertSingle } from '$lib/server/assert';
 import {
   type DrizzleDatabase,
   deleteValidSession,
@@ -750,10 +749,11 @@ const testAclHead = testLabs.extend<{ aclHeadPage: Page }, { aclHeadUserId: stri
 
 const testAdmin = testDatabase.extend<{ adminPage: Page }, { adminUserId: string }>({
   adminUserId: [
-    async ({ database }, use) => {
+    async ({ database }, use, workerInfo) => {
+      const workerTag = `worker-${workerInfo.workerIndex}`;
       const { id: userId } = await createTestUser(database, {
-        email: 'admin@up.edu.ph',
-        googleUserId: 'test-admin',
+        email: `admin+${workerTag}@up.edu.ph`,
+        googleUserId: `test-admin-${workerTag}`,
         givenName: 'Draft',
         familyName: 'Administrator',
         isAdmin: true,
@@ -823,20 +823,12 @@ const testSecondAdmin = testDatabase.extend<
   },
 });
 
-// Seeds a candidate_sender row for the primary admin user. The admin user is
-// created elsewhere (see `testAdmin`) and looked up by email here to avoid
-// depending on the `testAdmin` fixture object, which would re-register
-// `adminPage` during `mergeTests` and break test-scoped page lifecycles.
-const testCandidateSender = testDatabase.extend<{ seededCandidateSender: string }>({
-  async seededCandidateSender({ database }, use) {
-    const { id } = await database
-      .select({ id: schema.user.id })
-      .from(schema.user)
-      .where(eq(schema.user.email, 'admin@up.edu.ph'))
-      .limit(1)
-      .then(assertSingle);
+// Seeds a candidate_sender row for the current worker's admin user so parallel
+// E2E workers never contend on the same sender records.
+const testCandidateSender = testAdmin.extend<{ seededCandidateSender: string }>({
+  async seededCandidateSender({ adminUserId, database }, use) {
     await database.insert(schema.candidateSender).values({
-      userId: id,
+      userId: adminUserId,
       scopes: ['https://www.googleapis.com/auth/gmail.send'],
       expiredAt: sql`now() + interval '1 hour'`,
       accessTokenIv: sql`''::bytea`,
@@ -844,14 +836,14 @@ const testCandidateSender = testDatabase.extend<{ seededCandidateSender: string 
       refreshTokenIv: sql`''::bytea`,
       refreshTokenCipher: sql`''::bytea`,
     });
-    await use(id);
-    // Cascade also removes the designated_sender row, if any.
-    await database.delete(schema.candidateSender).where(eq(schema.candidateSender.userId, id));
+    await use(adminUserId);
+    await database
+      .delete(schema.candidateSender)
+      .where(eq(schema.candidateSender.userId, adminUserId));
   },
 });
 
 export const test = mergeTests(
-  testAdmin,
   testSecondAdmin,
   testCandidateSender,
   testNdslHead,
